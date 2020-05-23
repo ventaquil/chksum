@@ -1,9 +1,14 @@
 [package]
 name = "chksum"
 description = "Easy way to make checksum of single file or whole directory."
+keywords = ["checksum", "directory-checksum", "file-checksum", "hash"]
+categories = ["algorithms", "command-line-utilities", "cryptography"]
 version = "0.0.0"
 authors = ["Konrad Goławski <konrad@golawski.it>"]
 edition = "2018"
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/ventaquil/chksum"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

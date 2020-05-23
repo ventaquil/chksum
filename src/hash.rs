@@ -1,43 +1,24 @@
-use std::str::FromStr;
+use std::result::Result;
 
 pub mod md5;
+pub mod sha1;
 
-pub trait Context {
-    fn block_size(&self) -> usize;
+pub trait Context<Block, Digest> {
+    fn digest(&self) -> Digest;
 
-    fn update(&mut self, data: Vec<u8>);
+    fn update(&mut self, data: &[u8]) -> usize;
+
+    fn process_block(&mut self, block: &Block);
 
     fn finalize(&mut self);
-
-    fn digest(&self) -> Vec<u8>;
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Hash {
     MD5,
+    SHA1,
 }
 
-impl FromStr for Hash {
-    type Err = (); // fixme change this type
-
-    fn from_str(s: &str) -> Result<Hash, ()> {
-        match s {
-            "MD5" => Ok(Hash::MD5),
-            _ => Err(()),
-        }
-    }
-}
-
-impl Into<Box<dyn Context>> for Hash {
-    fn into(self) -> Box<dyn Context> {
-        Box::new(match self {
-            Hash::MD5 => md5::new(),
-        })
-    }
-}
-
-pub fn hashes() -> Vec<&'static str> {
-    vec![
-        "MD5",
-    ]
+pub trait Process {
+    fn process<Block, Digest>(&self, hash: &mut dyn Context<Block, Digest>) -> Result<(), String>;
 }

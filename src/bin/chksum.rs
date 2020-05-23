@@ -1,18 +1,12 @@
-use std::cmp::min;
-use std::path::Path;
-use std::thread;
-
-use chksum::{self, Context, hash, io::Processor};
+use chksum::{self, Context, hash};
 
 extern crate clap;
 use clap::{Arg, App};
 
 fn parse_arguments() -> Context {
-    const NAME: &'static str = env!("CARGO_PKG_NAME");
-    const VERSION: &'static str = env!("CARGO_PKG_VERSION");
-    const DESCRIPTION: &'static str = env!("CARGO_PKG_DESCRIPTION");
-
-    let hashes = hash::hashes();
+    const NAME: &str = env!("CARGO_PKG_NAME");
+    const VERSION: &str = env!("CARGO_PKG_VERSION");
+    const DESCRIPTION: &str = env!("CARGO_PKG_DESCRIPTION");
 
     let matches = App::new(NAME)
                       .version(VERSION)
@@ -29,11 +23,9 @@ fn parse_arguments() -> Context {
                                .short("s")
                                .help("Chunk size")
                                .default_value("512")
-                               .validator(|value| {
-                                   match value.parse::<usize>() {
-                                       Ok(_) => Ok(()),
-                                       Err(_) => Err(String::from("The value is not a number")),
-                                   }
+                               .validator(|value| match value.parse::<usize>() {
+                                   Ok(_) => Ok(()),
+                                   Err(_) => Err(String::from("The value is not a number")),
                                }))
                       .arg(Arg::with_name("process pathnames")
                                .long("process-pathnames")
@@ -43,39 +35,45 @@ fn parse_arguments() -> Context {
                                .long("hash")
                                .short("H")
                                .help("Chosen hash algorithm")
-                               .possible_values(&hashes[..])
-                               .hide_possible_values(true)
-                               .default_value(hashes[0]))
+                               .default_value("MD5")
+                               .validator(|value| match &value[..] { // todo implement generator
+                                   "MD5" => Ok(()),
+                                   "SHA1" | "SHA-1" => Ok(()),
+                                   _ => Err(String::from("Unknown hash algorithm"))
+                               }))
                       .arg(Arg::with_name("jobs")
                                .long("jobs")
                                .short("j")
                                .help("Maximum number of working threads")
                                .default_value("1")
-                               .validator(|value| {
-                                   match value.parse::<usize>() {
-                                       Ok(_) => Ok(()),
-                                       Err(_) => Err(String::from("The value is not a number")),
-                                   }
+                               .validator(|value| match value.parse::<usize>() {
+                                   Ok(_) => Ok(()),
+                                   Err(_) => Err(String::from("The value is not a number")),
                                }))
+                      .after_help("Implemented hash algorithms:\n - MD5,\n - SHA-1.") // todo implement generator
                       .get_matches();
 
     let chunk_size = matches.value_of("chunk size")
-                            .unwrap()
+                            .unwrap() // todo do not use unwrap
                             .parse::<usize>()
-                            .unwrap();
+                            .unwrap(); // todo do not use unwrap
 
-    // let hash = hash::Hash::from_str(matches.value_of("hash")
-    //                                        .unwrap());
-    let hash = hash::Hash::MD5; // fixme
+    let hash = matches.value_of("hash")
+                      .unwrap();
+    let hash = match hash { // todo implement generator
+        "MD5" => hash::Hash::MD5,
+        "SHA1" | "SHA-1" => hash::Hash::SHA1,
+        _ => hash::Hash::MD5, // should never happen?
+    };
 
     let jobs = matches.value_of("jobs")
-                      .unwrap()
+                      .unwrap() // todo do not use unwrap
                       .parse::<usize>()
-                      .unwrap();
+                      .unwrap(); // todo do not use unwrap
 
     let pathnames: Vec<String> = matches.values_of("pathnames")
-                                        .unwrap()
-                                        .map(|pathname| String::from(pathname))
+                                        .unwrap() // todo do not use unwrap
+                                        .map(String::from)
                                         .collect();
 
     let process_pathnames = matches.is_present("process pathnames");
@@ -85,37 +83,19 @@ fn parse_arguments() -> Context {
 
 fn main() {
     let context = parse_arguments();
-
-    // let threads: Vec<thread::JoinHandle<_>> = context.pathnames
-    //                                                  .iter()
-    //                                                  .map(|pathname| thread::spawn(move || {
-    //                                                      println!("{}", pathname);
-    //                                                  }))
-    //                                                  .collect();
-    for i in (0..context.pathnames.len()).step_by(context.jobs) {
-    let j = min(i + context.jobs, context.pathnames.len());
-        let mut threads: Vec<thread::JoinHandle<_>> = Vec::new();
-        for pathname in &context.pathnames[i..j] {
-            let chunk_size = context.chunk_size;
-            let hash = context.hash.clone();
-            let process_pathnames = context.process_pathnames;
-            let pathname = pathname.clone();
-            let thread = thread::spawn(move || {
-                let path = Path::new(&pathname);
-                let processor = Processor::new(chunk_size, hash, process_pathnames);
-                let digest = processor.process(&path);
-                (digest, pathname)
-            });
-            threads.push(thread);
-        }
-
-        for thread in threads {
-            let (digest, pathname) = thread.join().unwrap(); // fixme catch unwrap
-            let digest: String = digest.unwrap() // fixme catch unwrap
-                                       .iter()
-                                       .map(|digit| format!("{:02x}", digit))
-                                       .collect();
-            println!("{}\t{}", digest, pathname);
-        }
-    }
+    match context.process() {
+        Ok(results) => {
+            for pathname in context.pathnames() {
+                if let Some(result) = results.get(pathname) {
+                    match result {
+                        Ok(digest) => println!("{}\t{}", digest, pathname),
+                        Err(error) => eprintln!("{}: {}", pathname, error),
+                    };
+                } else {
+                    // should never happen?
+                }
+            }
+        },
+        Err(error) => eprintln!("{:?}", error), // todo what do with this error?
+    };
 }

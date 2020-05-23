@@ -34,6 +34,6 @@ Like:
 
 ## Hash algorithms
 
-Currently there are implemneted two hash algorithms:
+Currently there are implemented two hash algorithms:
  * MD5 - [RFC 1321: The MD5 Message-Digest Algorithm](https://tools.ietf.org/html/rfc1321)
  * SHA-1 - [RFC 3174: US Secure Hash Algorithm 1 (SHA1)](https://tools.ietf.org/html/rfc3174)

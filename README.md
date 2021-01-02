@@ -1,5 +1,10 @@
 # chksum
 
+[![Build](https://img.shields.io/github/workflow/status/ventaquil/chksum/Rust?style=flat-square "Build")](https://github.com/ventaquil/chksum/actions?query=workflow%3ARust)
+[![Release](https://img.shields.io/github/v/release/ventaquil/chksum?include_prereleases&sort=semver&style=flat-square "Release")](https://github.com/ventaquil/chksum/releases)
+[![crates.io](https://img.shields.io/crates/v/chksum?style=flat-square "crates.io")](https://crates.io/crates/chksum)
+[![LICENSE](https://img.shields.io/github/license/ventaquil/chksum?style=flat-square "LICENSE")](https://github.com/ventaquil/chksum/blob/master/LICENSE)
+
 For people who wants to make checksum of whole directory but don't like:
 
     find /path -type f -exec md5sum \{\} + | sort -k1 | md5sum

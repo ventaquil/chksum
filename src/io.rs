@@ -8,101 +8,136 @@ use crate::hash::{Context as HashContext, Process};
 extern crate walkdir;
 use walkdir::WalkDir;
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct Context {
+    pub chunk_size: usize,
+    pub process_pathnames: bool,
+}
+
+impl Default for Context {
+    #[inline]
+    fn default() -> Context {
+        Context {
+            chunk_size: 512,
+            process_pathnames: false,
+        }
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct File {
-    chunk_size: usize,
+    context: Context,
     pathname: String,
-    process_pathname: bool,
 }
 
 impl File {
-    pub fn new(pathname: &str, chunk_size: usize, process_pathname: bool) -> Result<File, String> {
+    #[inline]
+    pub fn new(pathname: &str, context: Context) -> Result<File, String> {
         let path = path::Path::new(pathname);
 
         if !path.exists() {
             Err(format!("path {} not exists", pathname))
         } else if path.is_file() {
             Ok(File {
-                chunk_size,
+                context,
                 pathname: pathname.to_string(),
-                process_pathname,
             })
         } else {
             Err(format!("there is no file under path {}", pathname))
         }
     }
+
+    #[inline]
+    pub fn pathname(&self) -> &str {
+        &self.pathname
+    }
 }
 
 impl Process for File {
-    fn process<Block, Digest>(&self, hash: &mut dyn HashContext<Block, Digest>) -> Result<(), String> {
-        if self.process_pathname {
+    #[inline]
+    fn process<Block, Digest>(
+        &self,
+        hash: &mut dyn HashContext<Block, Digest>,
+    ) -> Result<Digest, String> {
+        if self.context.process_pathnames {
             hash.update(self.pathname.as_bytes()); // todo check output
         }
 
-        fs::File::open(&self.pathname).and_then(|mut file| {
-            fs::metadata(&self.pathname).and_then(|metadata| {
-                let length: usize = metadata.len() as usize;
-                for _ in (0..length).step_by(self.chunk_size) {
-                    let mut buffer = vec![0; self.chunk_size];
-                    let read = file.read(&mut buffer)?;
-                    if read != hash.update(&buffer[0..read]) {
-                        // todo return error
+        fs::File::open(self.pathname())
+            .and_then(|mut file| {
+                fs::metadata(self.pathname()).and_then(|metadata| {
+                    let length: usize = metadata.len() as usize;
+                    for _ in (0..length).step_by(self.context.chunk_size) {
+                        let mut buffer = vec![0; self.context.chunk_size];
+                        let read = file.read(&mut buffer)?;
+                        if read != hash.update(&buffer[0..read]) {
+                            // todo return error
+                        }
                     }
-                }
-                Ok(())
+                    Ok(hash.digest())
+                })
             })
-        })
-        .or_else(|error| Err(error.to_string())) // change every io.Error into String
+            .or_else(|error| Err(error.to_string())) // change every io.Error into String
     }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Directory {
-    chunk_size: usize,
+    context: Context,
     pathname: String,
-    process_pathnames: bool,
 }
 
 impl Directory {
-    pub fn new(pathname: &str, chunk_size: usize, process_pathnames: bool) -> Result<Directory, String> {
+    #[inline]
+    pub fn new(pathname: &str, context: Context) -> Result<Directory, String> {
         let path = path::Path::new(pathname);
 
         if !path.exists() {
             Err(format!("path {} not exists", pathname))
         } else if path.is_dir() {
             Ok(Directory {
-                chunk_size,
+                context,
                 pathname: pathname.to_string(),
-                process_pathnames,
             })
         } else {
             Err(format!("there is no directory under path {}", pathname))
         }
     }
+
+    #[inline]
+    pub fn pathname(&self) -> &str {
+        &self.pathname
+    }
 }
 
 impl Process for Directory {
-    fn process<Block, Digest>(&self, hash: &mut dyn HashContext<Block, Digest>) -> Result<(), String> {
-        let pathnames = WalkDir::new(&self.pathname) // todo control min and max depth and follow links option
-                                .into_iter()
-                                .map(|entry| {
-                                    entry.and_then(|entry| {
-                                             let path = entry.into_path();
-                                             let pathname = path.to_string_lossy();
-                                             let pathname = String::from(pathname);
-                                             Ok(pathname)
-                                         })
-                                         .or_else(|error| Err(error.to_string())) // change every walkdir.Error into String
-                                });
+    #[inline]
+    fn process<Block, Digest>(
+        &self,
+        hash: &mut dyn HashContext<Block, Digest>,
+    ) -> Result<Digest, String> {
+        let pathnames = WalkDir::new(self.pathname()) // todo control min and max depth and follow links option
+            .into_iter()
+            .map(|entry| {
+                entry
+                    .and_then(|entry| {
+                        let path = entry.into_path();
+                        let pathname = path.to_string_lossy();
+                        let pathname = String::from(pathname);
+                        Ok(pathname)
+                    })
+                    .or_else(|error| Err(error.to_string())) // change every walkdir.Error into String
+            });
         for pathname in pathnames {
             let pathname = pathname?;
-            if let Ok(file) = File::new(&pathname, self.chunk_size, self.process_pathnames) {
+            if let Ok(file) = File::new(&pathname, self.context) {
                 file.process(hash)?;
-            } else if self.process_pathnames { // for directories only process pathnames if this option is enabled
+            } else if self.context.process_pathnames {
+                // for directories only process pathnames if this option is enabled
                 hash.update(pathname.as_bytes()); // todo check output
             }
         }
-        Ok(())
+        Ok(hash.digest())
     }
 }
 
@@ -113,27 +148,40 @@ pub enum Path {
 }
 
 impl Path {
-    pub fn new(pathname: &str, chunk_size: usize, process_pathname: bool) -> Result<Path, String> {
+    #[inline]
+    pub fn new(pathname: &str, context: Context) -> Result<Path, String> {
         let path = path::Path::new(pathname);
 
         if !path.exists() {
             Err(format!("path {} not exists", pathname))
         } else if path.is_file() {
-            let file = File::new(pathname, chunk_size, process_pathname)?;
+            let file = File::new(pathname, context)?;
             let file = Self::File(file);
             Ok(file)
         } else if path.is_dir() {
-            let directory = Directory::new(pathname, chunk_size, process_pathname)?;
+            let directory = Directory::new(pathname, context)?;
             let directory = Self::Directory(directory);
             Ok(directory)
         } else {
             Err(format!("undefined type of {}", pathname))
         }
     }
+
+    #[inline]
+    pub fn pathname(&self) -> &str {
+        match self {
+            Self::File(file) => file.pathname(),
+            Self::Directory(directory) => directory.pathname(),
+        }
+    }
 }
 
 impl Process for Path {
-    fn process<Block, Digest>(&self, hash: &mut dyn HashContext<Block, Digest>) -> Result<(), String> {
+    #[inline]
+    fn process<Block, Digest>(
+        &self,
+        hash: &mut dyn HashContext<Block, Digest>,
+    ) -> Result<Digest, String> {
         match self {
             Self::File(file) => file.process(hash),
             Self::Directory(directory) => directory.process(hash),

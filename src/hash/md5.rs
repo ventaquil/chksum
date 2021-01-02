@@ -84,8 +84,8 @@ impl PartialEq for Block {
     fn eq(&self, other: &Self) -> bool {
         (self.block[..] == other.block[..]) && (self.length == other.length)
     }
-
 }
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Digest {
     digest: [u8; 16],
@@ -96,9 +96,7 @@ impl Digest {
 
     #[inline]
     pub fn new(digest: [u8; 16]) -> Digest {
-        Digest {
-            digest,
-        }
+        Digest { digest }
     }
 
     #[inline]
@@ -108,9 +106,10 @@ impl Digest {
 
     #[inline]
     pub fn hex(&self) -> String {
-        self.digest.iter()
-                   .map(|digit| format!("{:02x}", digit))
-                   .collect::<String>()
+        self.digest
+            .iter()
+            .map(|digit| format!("{:02x}", digit))
+            .collect::<String>()
     }
 }
 
@@ -177,8 +176,7 @@ impl super::Context<Block, Digest> for Context {
             let block = self.block.clone(); // todo why need to clone?
             self.process_block(&block);
 
-            // let iterations = data.len() / Block::LENGTH;
-            let iterations = data.len() >> 6; // faster than divide by Block::LENGTH
+            let iterations = data.len() / Block::LENGTH;
             for _ in 0..iterations {
                 let chunk = &data[..Block::LENGTH];
                 processed += self.block.fill(&chunk);
@@ -227,10 +225,10 @@ impl super::Context<Block, Digest> for Context {
         #[inline]
         fn ff(a: u32, b: u32, c: u32, d: u32, data: u32, rotation: u32, constant: u32) -> u32 {
             a.wrapping_add(f(b, c, d))
-             .wrapping_add(data)
-             .wrapping_add(constant)
-             .rotate_left(rotation)
-             .wrapping_add(b)
+                .wrapping_add(data)
+                .wrapping_add(constant)
+                .rotate_left(rotation)
+                .wrapping_add(b)
         }
 
         let a = ff(a, b, c, d, block[ 0],  7, 0xD76AA478);
@@ -260,10 +258,10 @@ impl super::Context<Block, Digest> for Context {
         #[inline]
         fn gg(a: u32, b: u32, c: u32, d: u32, data: u32, rotation: u32, constant: u32) -> u32 {
             a.wrapping_add(g(b, c, d))
-             .wrapping_add(data)
-             .wrapping_add(constant)
-             .rotate_left(rotation)
-             .wrapping_add(b)
+                .wrapping_add(data)
+                .wrapping_add(constant)
+                .rotate_left(rotation)
+                .wrapping_add(b)
         }
 
         let a = gg(a, b, c, d, block[ 1],  5, 0xF61E2562);
@@ -293,10 +291,10 @@ impl super::Context<Block, Digest> for Context {
         #[inline]
         fn hh(a: u32, b: u32, c: u32, d: u32, data: u32, rotation: u32, constant: u32) -> u32 {
             a.wrapping_add(h(b, c, d))
-             .wrapping_add(data)
-             .wrapping_add(constant)
-             .rotate_left(rotation)
-             .wrapping_add(b)
+                .wrapping_add(data)
+                .wrapping_add(constant)
+                .rotate_left(rotation)
+                .wrapping_add(b)
         }
 
         let a = hh(a, b, c, d, block[ 5],  4, 0xFFFA3942);
@@ -326,10 +324,10 @@ impl super::Context<Block, Digest> for Context {
         #[inline]
         fn ii(a: u32, b: u32, c: u32, d: u32, data: u32, rotation: u32, constant: u32) -> u32 {
             a.wrapping_add(i(b, c, d))
-             .wrapping_add(data)
-             .wrapping_add(constant)
-             .rotate_left(rotation)
-             .wrapping_add(b)
+                .wrapping_add(data)
+                .wrapping_add(constant)
+                .rotate_left(rotation)
+                .wrapping_add(b)
         }
 
         let a = ii(a, b, c, d, block[ 0],  6, 0xF4292244);
@@ -366,8 +364,7 @@ impl super::Context<Block, Digest> for Context {
         #[inline]
         fn padding_length(length: usize) -> [u8; 64] {
             let length = length as u64;
-            // let length = length * 8; // convert byte-length into bits-length
-            let length = length << 3; // faster than multiply by 8
+            let length = length * 8; // convert byte-length into bits-length
             let length = length.to_le_bytes();
 
             let mut data = [0u8; Block::LENGTH];

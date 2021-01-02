@@ -20,5 +20,8 @@ pub enum Hash {
 }
 
 pub trait Process {
-    fn process<Block, Digest>(&self, hash: &mut dyn Context<Block, Digest>) -> Result<(), String>;
+    fn process<Block, Digest>(
+        &self,
+        hash: &mut dyn Context<Block, Digest>,
+    ) -> Result<Digest, String>;
 }

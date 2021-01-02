@@ -1,6 +1,6 @@
 //! Implementation of SHA-1 hash function based on [RFC 3174: US Secure Hash Algorithm 1 (SHA1)](https://tools.ietf.org/html/rfc3174).
 
-use super::md5::Block;
+pub use super::md5::Block;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Digest {
@@ -12,9 +12,7 @@ impl Digest {
 
     #[inline]
     pub fn new(digest: [u8; 20]) -> Digest {
-        Digest {
-            digest,
-        }
+        Digest { digest }
     }
 
     #[inline]
@@ -24,9 +22,10 @@ impl Digest {
 
     #[inline]
     pub fn hex(&self) -> String {
-        self.digest.iter()
-                   .map(|digit| format!("{:02x}", digit))
-                   .collect::<String>()
+        self.digest
+            .iter()
+            .map(|digit| format!("{:02x}", digit))
+            .collect::<String>()
     }
 }
 
@@ -96,8 +95,7 @@ impl super::Context<Block, Digest> for Context {
             let block = self.block.clone(); // todo why need to clone?
             self.process_block(&block);
 
-            // let iterations = data.len() / Block::LENGTH;
-            let iterations = data.len() >> 6; // faster than divide by Block::LENGTH
+            let iterations = data.len() / Block::LENGTH;
             for _ in 0..iterations {
                 let chunk = &data[..Block::LENGTH];
                 processed += self.block.fill(&chunk);
@@ -370,8 +368,7 @@ impl super::Context<Block, Digest> for Context {
         #[inline]
         fn padding_length(length: usize) -> [u8; 64] {
             let length = length as u64;
-            // let length = length * 8; // convert byte-length into bits-length
-            let length = length << 3; // faster than multiply by 8
+            let length = length * 8; // convert byte-length into bits-length
             let length = length.to_be_bytes();
 
             let mut data = [0u8; Block::LENGTH];

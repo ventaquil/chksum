@@ -1,1 +1,4 @@
-/target
+chksum
+
+# Cargo
+target/

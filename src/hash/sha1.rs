@@ -92,14 +92,14 @@ impl super::Context<Block, Digest> for Context {
         if self.block.full() {
             data = &data[chunk..];
 
-            let block = self.block.clone(); // todo why need to clone?
+            let block = self.block;
             self.process_block(&block);
 
             let iterations = data.len() / Block::LENGTH;
             for _ in 0..iterations {
                 let chunk = &data[..Block::LENGTH];
                 processed += self.block.fill(&chunk);
-                let block = self.block.clone(); // todo why need to clone?
+                let block = self.block;
                 self.process_block(&block);
                 data = &data[Block::LENGTH..];
             }
@@ -393,7 +393,7 @@ impl super::Context<Block, Digest> for Context {
         if self.block.full() { // should never happen?
             // create new full padding block
 
-            let mut block = self.block.clone();
+            let mut block = self.block;
             self.process_block(&block);
 
             let padding = padding(processed_data_length);
@@ -403,7 +403,7 @@ impl super::Context<Block, Digest> for Context {
             // create new partial padding block
 
             let padding = [0x80u8];
-            let mut block = self.block.clone();
+            let mut block = self.block;
             block.add(&padding);
             self.process_block(&block);
 
@@ -414,7 +414,7 @@ impl super::Context<Block, Digest> for Context {
             // fill existing block with padding
 
             let padding = padding_index(block_filling_data_length, processed_data_length);
-            let mut block = self.block.clone();
+            let mut block = self.block;
             block.add(&padding[block_filling_data_length..]);
             self.process_block(&block);
         }

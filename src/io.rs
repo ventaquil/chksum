@@ -77,7 +77,7 @@ impl Process for File {
                     Ok(hash.digest())
                 })
             })
-            .or_else(|error| Err(error.to_string())) // change every io.Error into String
+            .map_err(|error| error.to_string()) // change every io.Error into String
     }
 }
 
@@ -120,13 +120,12 @@ impl Process for Directory {
             .into_iter()
             .map(|entry| {
                 entry
-                    .and_then(|entry| {
+                    .map(|entry| {
                         let path = entry.into_path();
                         let pathname = path.to_string_lossy();
-                        let pathname = String::from(pathname);
-                        Ok(pathname)
+                        String::from(pathname)
                     })
-                    .or_else(|error| Err(error.to_string())) // change every walkdir.Error into String
+                    .map_err(|error| error.to_string()) // change every walkdir.Error into String
             });
         for pathname in pathnames {
             let pathname = pathname?;

@@ -151,6 +151,7 @@ impl Default for Context {
 
 impl super::Context<Block, Digest> for Context {
     #[inline]
+    #[allow(clippy::clone_on_copy)]
     fn digest(&self) -> Digest {
         let mut context = self.clone();
         context.finalize();

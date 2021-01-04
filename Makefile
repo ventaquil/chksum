@@ -2,6 +2,7 @@ CARGO := cargo
 CP := cp
 INSTALL := install
 RM := rm
+STRIP := strip
 
 DEBUG := 0
 DESTDIR ?=
@@ -35,9 +36,11 @@ endif
 ifeq ($(DEBUG), 0)
 chksum: target/release/chksum
 	$(CP) target/release/chksum chksum
+	$(STRIP) chksum
 else
 chksum: target/debug/chksum
 	$(CP) target/debug/chksum chksum
+	$(STRIP) chksum
 endif
 
 .PHONY: target/debug/chksum

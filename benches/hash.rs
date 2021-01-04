@@ -1,4 +1,4 @@
-use chksum::hash::{Context as _, md5, sha1};
+use chksum::hash::{Hash as _, md5, sha1};
 
 use criterion::{criterion_group, Criterion};
 

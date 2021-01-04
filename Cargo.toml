@@ -15,7 +15,7 @@ repository = "https://github.com/ventaquil/chksum"
 [dependencies]
 clap = "~2"
 num_cpus = "~1"
-walkdir = "~2"
+threadpool = "~1"
 
 [dev-dependencies]
 criterion = "~0.3"

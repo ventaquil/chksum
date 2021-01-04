@@ -1,11 +1,17 @@
-use chksum::{self, hash, io, Context};
+use std::error::Error;
+use std::sync::mpsc;
+
+use chksum::{self, hash, io};
 
 extern crate clap;
 use clap::{App, Arg};
 
 extern crate num_cpus;
 
-fn parse_arguments() -> Context {
+extern crate threadpool;
+use threadpool::ThreadPool;
+
+fn main() -> Result<(), Box<dyn Error>> {
     const NAME: &str = env!("CARGO_PKG_NAME");
     const VERSION: &str = env!("CARGO_PKG_VERSION");
     const DESCRIPTION: &str = env!("CARGO_PKG_DESCRIPTION");
@@ -34,9 +40,9 @@ fn parse_arguments() -> Context {
                 }),
         )
         .arg(
-            Arg::with_name("process pathnames")
-                .long("process-pathnames")
-                .short("p")
+            Arg::with_name("with pathnames")
+                .long("with-pathnames")
+                .short("W")
                 .help("Use pathnames to calculate digests"),
         )
         .arg(
@@ -45,26 +51,26 @@ fn parse_arguments() -> Context {
                 .short("H")
                 .help("Chosen hash algorithm")
                 .default_value("MD5")
-                .validator(|value| match &value[..] {
-                    // todo implement generator
-                    "MD5" => Ok(()),
-                    "SHA1" | "SHA-1" => Ok(()),
-                    _ => Err(String::from("Unknown hash algorithm")),
-                }),
+                .validator(|hash| hash::new(&hash).map(|_| ()).map_err(|error| error.to_string())),
         )
         .arg(
-            Arg::with_name("jobs")
-                .long("jobs")
-                .short("j")
+            Arg::with_name("workers")
+                .long("workers")
+                .short("w")
                 .help("Maximum number of working threads")
                 .default_value("auto")
                 .validator(|value| {
-                    let auto = "auto";
-                    match value {
-                        auto => Ok(()),
+                    match &value as &str {
+                        "auto" => Ok(()),
                         _ => match value.parse::<usize>() {
-                            Ok(_) => Ok(()),
-                            Err(_) => Err(String::from("The value is not a number")),
+                            Ok(value) => {
+                                if value == 0 {
+                                    Err(String::from("Value cannot be zero"))
+                                } else {
+                                    Ok(())
+                                }
+                            },
+                            Err(_) => Err(String::from("Value must be a positive number")),
                         },
                     }
                 }),
@@ -74,55 +80,55 @@ fn parse_arguments() -> Context {
 
     let chunk_size = matches
         .value_of("chunk size")
-        .unwrap() // todo do not use unwrap
-        .parse::<usize>()
-        .unwrap(); // todo do not use unwrap
+        .unwrap()
+        .parse::<usize>()?;
 
-    let hash = matches.value_of("hash").unwrap();
-    let hash = match hash {
-        // todo implement generator
-        "MD5" => hash::Hash::MD5,
-        "SHA1" | "SHA-1" => hash::Hash::SHA1,
-        _ => hash::Hash::MD5, // should never happen?
-    };
+    let hash = matches
+        .value_of("hash")
+        .unwrap();
+    let hash = hash::new(hash)?;
 
-    let jobs = matches.value_of("jobs");
-    let jobs = match jobs {
+    let workers = matches.value_of("workers");
+    let workers = match workers {
         Some("auto") | None => num_cpus::get(),
-        _ => jobs.unwrap().parse::<usize>().unwrap(),
-    }; // todo do not use unwrap
+        _ => workers.unwrap().parse::<usize>()?,
+    };
 
     let pathnames: Vec<String> = matches
         .values_of("pathnames")
-        .unwrap() // todo do not use unwrap
+        .unwrap()
         .map(String::from)
         .collect();
 
-    let process_pathnames = matches.is_present("process pathnames");
+    let with_pathnames = matches.is_present("with pathnames");
 
-    let io = io::Context {
+    let io = io::new(
         chunk_size,
-        process_pathnames,
-    };
+        with_pathnames,
+    );
 
-    chksum::new(hash, io, jobs, pathnames)
-}
+    let context = chksum::new(hash, io);
 
-fn main() {
-    let context = parse_arguments();
-    match context.process() {
-        Ok(results) => {
-            for pathname in context.pathnames() {
-                if let Some(result) = results.get(pathname) {
-                    match result {
-                        Ok(digest) => println!("{}\t{}", digest, pathname),
-                        Err(error) => eprintln!("{}: {}", pathname, error),
-                    };
-                } else {
-                    // should never happen?
-                }
-            }
-        },
-        Err(error) => eprintln!("{:?}", error), // todo what do with this error?
-    };
+    let jobs = pathnames.len();
+
+    let (tx, rx) = mpsc::channel();
+    let pool = ThreadPool::new(workers);
+    for pathname in pathnames {
+        let context = context.clone();
+        let tx = tx.clone();
+        pool.execute(move || {
+            let checksum = context.chksum(&pathname);
+            tx.send((pathname, checksum)).unwrap();
+        });
+    }
+
+    for _ in 0..jobs {
+        let (pathname, result) = rx.recv()?;
+        match result {
+            Ok(digest) => println!("{}\t{}", pathname, digest),
+            Err(error) => eprintln!("{}\t{}", pathname, error),
+        }
+    }
+
+    Ok(())
 }

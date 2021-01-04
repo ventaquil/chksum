@@ -16,16 +16,16 @@ impl Digest {
     }
 
     #[inline]
-    pub fn digest(&self) -> [u8; 20] {
-        self.digest
-    }
-
-    #[inline]
-    pub fn hex(&self) -> String {
+    pub fn to_hex(&self) -> String {
         self.digest
             .iter()
             .map(|digit| format!("{:02x}", digit))
             .collect::<String>()
+    }
+
+    #[inline]
+    pub fn to_raw(&self) -> [u8; 20] {
+        self.digest
     }
 }
 
@@ -59,21 +59,13 @@ impl Context {
             block: Block::new(),
         }
     }
-}
 
-impl Default for Context {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl super::Context<Block, Digest> for Context {
     #[inline]
     #[allow(clippy::clone_on_copy)]
     fn digest(&self) -> Digest {
         let mut context = self.clone();
         context.finalize();
-        let mut digest = [0u8; Digest::LENGTH];
+        let mut digest = [0_u8; Digest::LENGTH];
         digest[ 0.. 4].clone_from_slice(&context.a.to_be_bytes());
         digest[ 4.. 8].clone_from_slice(&context.b.to_be_bytes());
         digest[ 8..12].clone_from_slice(&context.c.to_be_bytes());
@@ -83,31 +75,60 @@ impl super::Context<Block, Digest> for Context {
     }
 
     #[inline]
-    fn update(&mut self, data: &[u8]) -> usize {
-        let mut data = &data[..];
+    fn finalize(&mut self) {
+        #[inline]
+        fn padding_length(length: usize) -> [u8; 64] {
+            let length = length as u64;
+            let length = length * 8; // convert byte-length into bits-length
+            let length = length.to_be_bytes();
 
-        let mut processed: usize = 0;
+            let mut data = [0_u8; Block::LENGTH];
+            data[(Block::LENGTH - 8)..].clone_from_slice(&length);
+            data
+        }
 
-        let chunk = self.block.add(&data);
-        processed += chunk;
-        if self.block.full() {
-            data = &data[chunk..];
+        #[inline]
+        fn padding_index(index: usize, length: usize) -> [u8; 64] {
+            let mut data = padding_length(length);
+            data[index] = 0x80;
+            data
+        }
 
-            let block = self.block;
+        #[inline]
+        fn padding(length: usize) -> [u8; 64] {
+            padding_index(0, length)
+        }
+
+        let block_filling_data_length = self.block.length();
+        let processed_data_length = self.length + block_filling_data_length;
+        if self.block.full() { // should never happen?
+            // create new full padding block
+
+            let mut block = self.block;
             self.process_block(&block);
 
-            let iterations = data.len() / Block::LENGTH;
-            for _ in 0..iterations {
-                let chunk = &data[..Block::LENGTH];
-                processed += self.block.fill(&chunk);
-                let block = self.block;
-                self.process_block(&block);
-                data = &data[Block::LENGTH..];
-            }
+            let padding = padding(processed_data_length);
+            block.fill(&padding);
+            self.process_block(&block);
+        } else if (block_filling_data_length + 1) > (Block::LENGTH - 8) {
+            // create new partial padding block
 
-            processed += self.block.fill(&data);
+            let padding = [0x80_u8];
+            let mut block = self.block;
+            block.add(&padding);
+            self.process_block(&block);
+
+            let padding = padding_length(processed_data_length);
+            block.fill(&padding);
+            self.process_block(&block);
+        } else {
+            // fill existing block with padding
+
+            let padding = padding_index(block_filling_data_length, processed_data_length);
+            let mut block = self.block;
+            block.add(&padding[block_filling_data_length..]);
+            self.process_block(&block);
         }
-        processed
     }
 
     #[inline]
@@ -203,7 +224,7 @@ impl super::Context<Block, Digest> for Context {
 
         let (a, b, c, d, e) = (self.a, self.b, self.c, self.d, self.e);
 
-        // part 1
+        // Step 1
 
         #[inline]
         fn f(x: u32, y: u32, z: u32) -> u32 {
@@ -240,7 +261,7 @@ impl super::Context<Block, Digest> for Context {
         let (a, b, c, d, e) = (ff(a, b, c, d, e, block[18], 0x5A827999), a, b.rotate_left(30), c, d);
         let (a, b, c, d, e) = (ff(a, b, c, d, e, block[19], 0x5A827999), a, b.rotate_left(30), c, d);
 
-        // part 2
+        // Step 2
 
         #[inline]
         fn g(x: u32, y: u32, z: u32) -> u32 {
@@ -277,7 +298,7 @@ impl super::Context<Block, Digest> for Context {
         let (a, b, c, d, e) = (gg(a, b, c, d, e, block[38], 0x6ED9EBA1), a, b.rotate_left(30), c, d);
         let (a, b, c, d, e) = (gg(a, b, c, d, e, block[39], 0x6ED9EBA1), a, b.rotate_left(30), c, d);
 
-        // part 3
+        // Step 3
 
         #[inline]
         fn h(x: u32, y: u32, z: u32) -> u32 {
@@ -314,7 +335,7 @@ impl super::Context<Block, Digest> for Context {
         let (a, b, c, d, e) = (hh(a, b, c, d, e, block[58], 0x8F1BBCDC), a, b.rotate_left(30), c, d);
         let (a, b, c, d, e) = (hh(a, b, c, d, e, block[59], 0x8F1BBCDC), a, b.rotate_left(30), c, d);
 
-        // part 4
+        // Step 4
 
         #[inline]
         fn i(x: u32, y: u32, z: u32) -> u32 {
@@ -365,60 +386,50 @@ impl super::Context<Block, Digest> for Context {
     }
 
     #[inline]
-    fn finalize(&mut self) {
-        #[inline]
-        fn padding_length(length: usize) -> [u8; 64] {
-            let length = length as u64;
-            let length = length * 8; // convert byte-length into bits-length
-            let length = length.to_be_bytes();
+    fn update(&mut self, data: &[u8]) -> usize {
+        let mut data = &data[..];
 
-            let mut data = [0u8; Block::LENGTH];
-            data[(Block::LENGTH - 8)..].clone_from_slice(&length);
-            data
+        let mut processed: usize = 0;
+
+        let chunk = self.block.add(&data);
+        processed += chunk;
+        if self.block.full() {
+            data = &data[chunk..];
+
+            let block = self.block;
+            self.process_block(&block);
+
+            let iterations = data.len() / Block::LENGTH;
+            for _ in 0..iterations {
+                let chunk = &data[..Block::LENGTH];
+                processed += self.block.fill(&chunk);
+                let block = self.block;
+                self.process_block(&block);
+                data = &data[Block::LENGTH..];
+            }
+
+            processed += self.block.fill(&data);
         }
+        processed
+    }
+}
 
-        #[inline]
-        fn padding_index(index: usize, length: usize) -> [u8; 64] {
-            let mut data = padding_length(length);
-            data[index] = 0x80;
-            data
-        }
+impl Default for Context {
+    #[inline]
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
-        #[inline]
-        fn padding(length: usize) -> [u8; 64] {
-            padding_index(0, length)
-        }
+impl super::Hash for Context {
+    #[inline]
+    fn digest(&self) -> String {
+        self.digest().to_hex()
+    }
 
-        let block_filling_data_length = self.block.length();
-        let processed_data_length = self.length + block_filling_data_length;
-        if self.block.full() { // should never happen?
-            // create new full padding block
-
-            let mut block = self.block;
-            self.process_block(&block);
-
-            let padding = padding(processed_data_length);
-            block.fill(&padding);
-            self.process_block(&block);
-        } else if (block_filling_data_length + 1) > (Block::LENGTH - 8) {
-            // create new partial padding block
-
-            let padding = [0x80u8];
-            let mut block = self.block;
-            block.add(&padding);
-            self.process_block(&block);
-
-            let padding = padding_length(processed_data_length);
-            block.fill(&padding);
-            self.process_block(&block);
-        } else {
-            // fill existing block with padding
-
-            let padding = padding_index(block_filling_data_length, processed_data_length);
-            let mut block = self.block;
-            block.add(&padding[block_filling_data_length..]);
-            self.process_block(&block);
-        }
+    #[inline]
+    fn update(&mut self, data: &[u8]) -> usize {
+        self.update(data)
     }
 }
 
@@ -433,11 +444,9 @@ pub mod tests {
                                   0x00, 0x11, 0x22, 0x33]);
         assert_eq!([0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77,
                     0x88, 0x99, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF,
-                    0x00, 0x11, 0x22, 0x33], digest.digest());
-        assert_eq!("00112233445566778899aabbccddeeff00112233", digest.hex());
+                    0x00, 0x11, 0x22, 0x33], digest.to_raw());
+        assert_eq!("00112233445566778899aabbccddeeff00112233", digest.to_hex());
     }
-
-    use super::super::Context;
 
     #[test]
     fn sha1_empty() {

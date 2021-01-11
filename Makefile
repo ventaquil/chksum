@@ -11,6 +11,10 @@ PREFIX ?= /usr/local
 .PHONY: default
 default: chksum
 
+.PHONY: bench
+bench:
+	$(CARGO) bench
+
 .PHONY: check
 check: test
 

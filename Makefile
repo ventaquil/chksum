@@ -78,5 +78,5 @@ $(DESTDIR)$(PREFIX)/share/man: $(DESTDIR)$(PREFIX)/share
 $(DESTDIR)$(PREFIX)/share/man/man1: $(DESTDIR)$(PREFIX)/share/man
 	$(INSTALL) -m 755 -d $(DESTDIR)$(PREFIX)/share/man/man1
 
-$(DESTDIR)$(PREFIX)/share/man/man1/chksum.1: $(DESTDIR)$(PREFIX)/share/man/man1 doc/man/chksum.1
-	$(INSTALL) -m 644 doc/man/chksum.1 $(DESTDIR)$(PREFIX)/share/man/man1
+$(DESTDIR)$(PREFIX)/share/man/man1/chksum.1: $(DESTDIR)$(PREFIX)/share/man/man1 docs/man/chksum.1
+	$(INSTALL) -m 644 docs/man/chksum.1 $(DESTDIR)$(PREFIX)/share/man/man1

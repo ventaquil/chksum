@@ -11,6 +11,9 @@ PREFIX ?= /usr/local
 .PHONY: default
 default: chksum
 
+.PHONY: check
+check: test
+
 .PHONY: install
 install: $(DESTDIR)$(PREFIX)/bin/chksum $(DESTDIR)$(PREFIX)/share/fish/completions/chksum.fish $(DESTDIR)$(PREFIX)/share/man/man1/chksum.1
 

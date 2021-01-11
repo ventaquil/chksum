@@ -40,7 +40,6 @@ chksum: target/release/chksum
 else
 chksum: target/debug/chksum
 	$(CP) target/debug/chksum chksum
-	$(STRIP) chksum
 endif
 
 .PHONY: target/debug/chksum

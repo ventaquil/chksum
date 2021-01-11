@@ -1,0 +1,5 @@
+chksum (0.0.0-1) unstable; urgency=medium
+
+  * Initial release (Closes: #nnnn)  <nnnn is the bug number of your ITP>
+
+ -- Konrad Goławski <konrad@golawski@gmail.com>  Sun, 10 Jan 2021 18:25:42 +0100

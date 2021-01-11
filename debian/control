@@ -1,0 +1,14 @@
+Source: chksum
+Section: utils
+Priority: optional
+Maintainer: Konrad Goławski <konrad@golawski.it>
+Build-Depends: debhelper-compat (= 12)
+Standards-Version: 4.4.1
+Vcs-Browser: https://github.com/ventaquil/chksum
+Vcs-Git: https://github.com/ventaquil/chksum.git
+Homepage: https://github.com/ventaquil/chksum
+
+Package: chksum
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Simple checksum calculator.

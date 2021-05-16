@@ -8,15 +8,28 @@ DEBUG := 0
 DESTDIR ?=
 PREFIX ?= /usr/local
 
+CARGO_FLAGS ?=
+TARGET_CPU ?=
+TARGET_FEATURES ?=
+
+RUSTC_FLAGS ?=
+ifneq ($(strip $(TARGET_CPU)),)
+	RUSTC_FLAGS += -C target-cpu=$(TARGET_CPU)
+endif
+ifneq ($(strip $(TARGET_FEATURES)),)
+	RUSTC_FLAGS += -C target-feature=$(TARGET_FEATURES)
+endif
+
 .PHONY: default
 default: chksum
 
 .PHONY: bench
 bench:
-	$(CARGO) bench
+	RUSTFLAGS="$(RUSTC_FLAGS)" $(CARGO) bench $(CARGO_FLAGS)
 
 .PHONY: check
-check: test
+check:
+	RUSTFLAGS="$(RUSTC_FLAGS)" $(CARGO) check $(CARGO_FLAGS)
 
 .PHONY: install
 install: $(DESTDIR)$(PREFIX)/bin/chksum $(DESTDIR)$(PREFIX)/share/fish/completions/chksum.fish $(DESTDIR)$(PREFIX)/share/man/man1/chksum.1
@@ -28,16 +41,16 @@ uninstall:
 	$(RM) -f $(DESTDIR)$(PREFIX)/share/man/man1/chksum.1
 
 .PHONY: clean
-clean: uninstall
+clean:
 	$(CARGO) clean
 	$(RM) -f chksum
 
 .PHONY: test
 test:
 ifeq ($(DEBUG), 0)
-	$(CARGO) test --release
+	RUSTFLAGS="$(RUSTC_FLAGS)" $(CARGO) test --release $(CARGO_FLAGS)
 else
-	$(CARGO) test
+	RUSTFLAGS="$(RUSTC_FLAGS)" $(CARGO) test $(CARGO_FLAGS)
 endif
 
 ifeq ($(DEBUG), 0)
@@ -51,11 +64,11 @@ endif
 
 .PHONY: target/debug/chksum
 target/debug/chksum:
-	$(CARGO) build
+	RUSTFLAGS="$(RUSTC_FLAGS)" $(CARGO) build $(CARGO_FLAGS)
 
 .PHONY: target/release/chksum
 target/release/chksum:
-	$(CARGO) build --release
+	RUSTFLAGS="$(RUSTC_FLAGS)" $(CARGO) build --release $(CARGO_FLAGS)
 
 $(DESTDIR)$(PREFIX):
 	$(INSTALL) -m 755 -d $(DESTDIR)$(PREFIX)

@@ -5,7 +5,7 @@
 [![crates.io](https://img.shields.io/crates/v/chksum?style=flat-square "crates.io")](https://crates.io/crates/chksum)
 [![LICENSE](https://img.shields.io/github/license/ventaquil/chksum?style=flat-square "LICENSE")](https://github.com/ventaquil/chksum/blob/master/LICENSE)
 
-For people who wants to make checksum of whole directory but don't like:
+For people who wants to make checksum of whole directory but doesn't like:
 
     find /path -type f -exec md5sum \{\} + | sort -k1 | md5sum
 
@@ -31,22 +31,19 @@ Simply install using `make install` target.
 
 Usage:
 
-    chksum [options] [--] <pathname>...
+    chksum [options] [--] <path>...
 
 Like:
 
     $ chksum LICENSE
-    LICENSE 256cc158ea3c7dd3efcee650b022b5a5
+    256cc158ea3c7dd3efcee650b022b5a5 LICENSE
     $ md5sum LICENSE
     256cc158ea3c7dd3efcee650b022b5a5  LICENSE
-    $ chksum --with-pathnames src src/
-    src     dc257745d9bb3c573d7756488dc90f80
-    src/    dc257745d9bb3c573d7756488dc90f80
-    $ chksum --hash SHA1 doc/ extra/
-    doc/    62ab37c8151bdecf618765b77910003ada71bda3
-    extra/  d92271a891f58f6f649de3631427e3253090a61f
-    $ find doc/ -type f -exec cat \{\} + | sha1sum
-    62ab37c8151bdecf618765b77910003ada71bda3  -
+    $ chksum --hash SHA1 docs/ extra/
+    d6143fde775af08fc43329295a620408fbcdd72b docs/
+    3e1c845b152bf99431b4c709c95c1aa20d4735b6 extra/
+    $ find docs/ -type f -exec cat \{\} + | sha1sum
+    d6143fde775af08fc43329295a620408fbcdd72b  -
 
 ## Hash algorithms
 

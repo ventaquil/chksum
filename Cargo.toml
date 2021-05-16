@@ -3,19 +3,21 @@ name = "chksum"
 description = "Easy way to make checksum of single file or whole directory."
 keywords = ["checksum", "directory-checksum", "file-checksum", "hash"]
 categories = ["algorithms", "command-line-utilities", "cryptography"]
-version = "0.0.0"
+version = "0.1.0-rc0"
 authors = ["Konrad Goławski <konrad@golawski.it>"]
-edition = "2018"
+edition = "2021"
 license = "MIT"
 readme = "README.md"
 repository = "https://github.com/ventaquil/chksum"
 
+[package.metadata.docs.rs]
+all-features = true
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-clap = "~2"
-num_cpus = "~1"
-threadpool = "~1"
+clap = "~2.33"
+walkdir = "~2.3"
 
 [dev-dependencies]
 criterion = "~0.3"
@@ -23,3 +25,8 @@ criterion = "~0.3"
 [[bench]]
 name = "main"
 harness = false
+
+[features]
+default = ["inline"]
+inline = []
+simd = []

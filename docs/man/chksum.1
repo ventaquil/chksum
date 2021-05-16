@@ -4,9 +4,9 @@ chksum \- simple checksum calculator
 .SH SYNOPSIS
 .B chksum
 [OPTIONS]
-.IR PATHNAME ...
+.IR PATH ...
 .SH DESCRIPTION
-Calculates checksum of files and directories under given PATHNAME(s).
+Calculates checksum of files and directories under given PATH(s).
 .SH OPTIONS
 .BR \-h ", " \-\-help
 Prints help information.
@@ -20,11 +20,8 @@ Chunk size.
 .BI \-H " HASH" "\fR, \fP\-\-hash=" HASH
 Chosen hash algorithm.
 .TP
-.BI \-w " WORKERS" "\fR, \fP\-\-workers=" WORKERS
-Maximum number of working threads.
-.TP
-.BR \-W ", " \-\-with\-pathnames
-Use pathnames to calculate digests.
+.BR \-P ", " \-\-with\-paths
+Use paths to calculate digests.
 .SH HASHES
 .R MD5, SHA-1
 .SH SEE ALSO

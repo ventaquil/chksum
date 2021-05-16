@@ -1,64 +1,261 @@
-use chksum::hash::{Hash as _, md5, sha1};
+use criterion::{Criterion, criterion_group, Throughput};
 
-use criterion::{criterion_group, Criterion};
+fn benchmark_md5_state_update(criterion: &mut Criterion) {
+    let mut group = criterion.benchmark_group("md5::State::update");
 
-fn benchmark_md5_empty(c: &mut Criterion) {
-    let context = md5::new();
-    c.bench_function("md5.empty", move |b| b.iter(|| {
-        context.digest();
-    }));
+    group.throughput(Throughput::Bytes(64));
+
+    {
+        use chksum::hash::md5::State;
+
+        let data = [0u32; 16];
+        let mut state: State<u32> = State::new();
+        group.bench_function("u32x1", move |bencher| bencher.iter(|| {
+            state.update(data);
+        }));
+    }
+
+    #[cfg(
+        all(
+            feature = "simd",
+            any(
+                target_arch = "x86",
+                target_arch = "x86_64",
+            ),
+            target_feature = "sse",
+            target_feature = "sse2",
+            target_feature = "sse4.1",
+        )
+    )]
+    {
+        #[cfg(target_arch = "x86")]
+        use chksum::arch::x86::u32x4;
+        #[cfg(target_arch = "x86_64")]
+        use chksum::arch::x86_64::u32x4;
+        use chksum::hash::md5::State;
+
+        let data = [u32x4::from(0u32); 16];
+        let mut state: State<u32x4> = State::new();
+        group.bench_function("u32x4", move |bencher| bencher.iter(|| {
+            state.update(data);
+        }));
+    }
+
+    group.finish();
 }
 
-fn benchmark_md5_block_update(c: &mut Criterion) {
-    let mut context = md5::new();
-    let data = &[0u8; 64][..];
-    c.bench_function("md5.block_update", move |b| b.iter(|| {
-        context.update(data);
-    }));
+fn benchmark_md5_hash_update(criterion: &mut Criterion) {
+    let mut group = criterion.benchmark_group("md5::Hash::update");
+
+    group.throughput(Throughput::Bytes(64));
+
+    {
+        use chksum::arch::x1::Arch;
+        use chksum::hash::md5::Hash;
+
+        let data = [0u8; 64];
+        let mut hash: Hash<Arch> = Hash::new();
+        group.bench_function("x1::Arch", move |bencher| bencher.iter(|| {
+            hash.update(&data);
+        }));
+    }
+
+    #[cfg(
+        all(
+            feature = "simd",
+            any(
+                target_arch = "x86",
+                target_arch = "x86_64",
+            ),
+            target_feature = "sse",
+            target_feature = "sse2",
+            target_feature = "sse4.1",
+        )
+    )]
+    {
+        use chksum::arch::x4::Arch;
+        #[cfg(target_arch = "x86")]
+        use chksum::arch::x86::u8x4;
+        #[cfg(target_arch = "x86_64")]
+        use chksum::arch::x86_64::u8x4;
+        use chksum::hash::md5::Hash;
+
+        let data = [u8x4::from(0u8); 64];
+        let mut hash: Hash<Arch> = Hash::new();
+        group.bench_function("x4::Arch", move |bencher| bencher.iter(|| {
+            hash.update(&data);
+        }));
+    }
+
+    group.finish();
 }
 
-fn benchmark_md5_block_update_digest(c: &mut Criterion) {
-    let mut context = md5::new();
-    let data = &[0u8; 64][..];
-    c.bench_function("md5.block_update_digest", move |b| b.iter(|| {
-        context.update(data);
-        context.digest();
-    }));
+fn benchmark_md5_hash_digest(criterion: &mut Criterion) {
+    let mut group = criterion.benchmark_group("md5::Hash::digest");
+
+    {
+        use chksum::arch::x1::Arch;
+        use chksum::hash::md5::Hash;
+
+        let hash: Hash<Arch> = Hash::new();
+        group.bench_function("x1::Arch", move |bencher| bencher.iter(|| {
+            hash.digest();
+        }));
+    }
+
+    #[cfg(
+        all(
+            feature = "simd",
+            any(
+                target_arch = "x86",
+                target_arch = "x86_64",
+            ),
+            target_feature = "sse",
+            target_feature = "sse2",
+            target_feature = "sse4.1",
+        )
+    )]
+    {
+        use chksum::arch::x4::Arch;
+        use chksum::hash::md5::Hash;
+
+        let hash: Hash<Arch> = Hash::new();
+        group.bench_function("x4::Arch", move |bencher| bencher.iter(|| {
+            hash.digest();
+        }));
+    }
+
+    group.finish();
 }
 
-criterion_group!(
-    md5,
-    benchmark_md5_empty,
-    benchmark_md5_block_update,
-    benchmark_md5_block_update_digest,
-);
+criterion_group!(md5, benchmark_md5_state_update, benchmark_md5_hash_update, benchmark_md5_hash_digest);
 
-fn benchmark_sha1_empty(c: &mut Criterion) {
-    let context = sha1::new();
-    c.bench_function("sha1.empty", move |b| b.iter(|| {
-        context.digest();
-    }));
+fn benchmark_sha1_state_update(criterion: &mut Criterion) {
+    let mut group = criterion.benchmark_group("sha1::State::update");
+
+    group.throughput(Throughput::Bytes(64));
+
+    {
+        use chksum::hash::sha1::State;
+
+        let data = [0u32; 16];
+        let mut state: State<u32> = State::new();
+        group.bench_function("u32x1", move |bencher| bencher.iter(|| {
+            state.update(data);
+        }));
+    }
+
+    #[cfg(
+        all(
+            feature = "simd",
+            any(
+                target_arch = "x86",
+                target_arch = "x86_64",
+            ),
+            target_feature = "sse",
+            target_feature = "sse2",
+            target_feature = "sse4.1",
+        )
+    )]
+    {
+        #[cfg(target_arch = "x86")]
+        use chksum::arch::x86::u32x4;
+        #[cfg(target_arch = "x86_64")]
+        use chksum::arch::x86_64::u32x4;
+        use chksum::hash::md5::State;
+
+        let data = [u32x4::from(0u32); 16];
+        let mut state: State<u32x4> = State::new();
+        group.bench_function("u32x4", move |bencher| bencher.iter(|| {
+            state.update(data);
+        }));
+    }
+
+    group.finish();
 }
 
-fn benchmark_sha1_block_update(c: &mut Criterion) {
-    let mut context = sha1::new();
-    let data = &[0u8; 64][..];
-    c.bench_function("sha1.block_update", move |b| b.iter(|| {
-        context.update(data);
-    }));
+fn benchmark_sha1_hash_update(criterion: &mut Criterion) {
+    let mut group = criterion.benchmark_group("sha1::Hash::update");
+
+    group.throughput(Throughput::Bytes(64));
+
+    {
+        use chksum::arch::x1::Arch;
+        use chksum::hash::sha1::Hash;
+
+        let data = [0u8; 64];
+        let mut hash: Hash<Arch> = Hash::new();
+        group.bench_function("x1::Arch", move |bencher| bencher.iter(|| {
+            hash.update(&data);
+        }));
+    }
+
+    #[cfg(
+        all(
+            feature = "simd",
+            any(
+                target_arch = "x86",
+                target_arch = "x86_64",
+            ),
+            target_feature = "sse",
+            target_feature = "sse2",
+            target_feature = "sse4.1",
+        )
+    )]
+    {
+        use chksum::arch::x4::Arch;
+        #[cfg(target_arch = "x86")]
+        use chksum::arch::x86::u8x4;
+        #[cfg(target_arch = "x86_64")]
+        use chksum::arch::x86_64::u8x4;
+        use chksum::hash::sha1::Hash;
+
+        let data = [u8x4::from(0u8); 64];
+        let mut hash: Hash<Arch> = Hash::new();
+        group.bench_function("x4::Arch", move |bencher| bencher.iter(|| {
+            hash.update(&data);
+        }));
+    }
+
+    group.finish();
 }
 
-fn benchmark_sha1_block_update_digest(c: &mut Criterion) {
-    let mut context = sha1::new();
-    let data = &[0u8; 64][..];
-    c.bench_function("sha1.block_update_digest", move |b| b.iter(|| {
-        context.update(data);
-    }));
+fn benchmark_sha1_hash_digest(criterion: &mut Criterion) {
+    let mut group = criterion.benchmark_group("sha1::Hash::digest");
+
+    {
+        use chksum::arch::x1::Arch;
+        use chksum::hash::sha1::Hash;
+
+        let hash: Hash<Arch> = Hash::new();
+        group.bench_function("x1::Arch", move |bencher| bencher.iter(|| {
+            hash.digest();
+        }));
+    }
+
+    #[cfg(
+        all(
+            feature = "simd",
+            any(
+                target_arch = "x86",
+                target_arch = "x86_64",
+            ),
+            target_feature = "sse",
+            target_feature = "sse2",
+            target_feature = "sse4.1",
+        )
+    )]
+    {
+        use chksum::arch::x4::Arch;
+        use chksum::hash::sha1::Hash;
+
+        let hash: Hash<Arch> = Hash::new();
+        group.bench_function("x4::Arch", move |bencher| bencher.iter(|| {
+            hash.digest();
+        }));
+    }
+
+    group.finish();
 }
 
-criterion_group!(
-    sha1,
-    benchmark_sha1_empty,
-    benchmark_sha1_block_update,
-    benchmark_sha1_block_update_digest,
-);
+criterion_group!(sha1, benchmark_sha1_state_update, benchmark_sha1_hash_update, benchmark_sha1_hash_digest);

@@ -3,7 +3,7 @@ name = "chksum"
 description = "Easy way to make checksum of single file or whole directory."
 keywords = ["checksum", "directory-checksum", "file-checksum", "hash"]
 categories = ["algorithms", "command-line-utilities", "cryptography"]
-version = "0.0.0"
+version = "0.1.0-dev"
 authors = ["Konrad Goławski <konrad@golawski.it>"]
 edition = "2018"
 license = "MIT"
@@ -15,7 +15,9 @@ repository = "https://github.com/ventaquil/chksum"
 [dependencies]
 clap = "~2"
 num_cpus = "~1"
+spmc = "~0.3"
 threadpool = "~1"
+walkdir = "~2"
 
 [dev-dependencies]
 criterion = "~0.3"

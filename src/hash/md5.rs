@@ -1,376 +1,207 @@
-//! Implementation of MD5 hash function based on [RFC 1321: The MD5 Message-Digest Algorithm](https://tools.ietf.org/html/rfc1321).
+use std::convert::{From, TryInto};
+// use std::fmt::{self,Formatter,LowerHex,UpperHex};
+// use std::marker::PhantomData;
+use std::ops::{BitAnd, BitOr, BitXor, Not, Shl, Shr};
 
-use std::cmp::min;
-use std::fmt::{Debug, Formatter, Result as FmtResult};
+use crate::arch::Arch;
+use crate::convert::{arch::From1, FromLeBytes, ToLeBytes};
+use crate::num::WrappingAdd;
+use super::Data as _;
 
-#[derive(Clone, Copy)]
-pub struct Block {
-    block: [u8; 64],
-    length: usize,
+const A: u32 = 0x67452301;
+const B: u32 = 0xEFCDAB89;
+const C: u32 = 0x98BADCFE;
+const D: u32 = 0x10325476;
+
+const CONSTS: [u32; 64] = [
+    0xD76AA478, 0xE8C7B756, 0x242070DB, 0xC1BDCEEE, 0xF57C0FAF, 0x4787C62A, 0xA8304613, 0xFD469501,
+    0x698098D8, 0x8B44F7AF, 0xFFFF5BB1, 0x895CD7BE, 0x6B901122, 0xFD987193, 0xA679438E, 0x49B40821,
+    0xF61E2562, 0xC040B340, 0x265E5A51, 0xE9B6C7AA, 0xD62F105D, 0x02441453, 0xD8A1E681, 0xE7D3FBC8, 
+    0x21E1CDE6, 0xC33707D6, 0xF4D50D87, 0x455A14ED, 0xA9E3E905, 0xFCEFA3F8, 0x676F02D9, 0x8D2A4C8A, 
+    0xFFFA3942, 0x8771F681, 0x6D9D6122, 0xFDE5380C, 0xA4BEEA44, 0x4BDECFA9, 0xF6BB4B60, 0xBEBFBC70, 
+    0x289B7EC6, 0xEAA127FA, 0xD4EF3085, 0x04881D05, 0xD9D4D039, 0xE6DB99E5, 0x1FA27CF8, 0xC4AC5665, 
+    0xF4292244, 0x432AFF97, 0xAB9423A7, 0xFC93A039, 0x655B59C3, 0x8F0CCC92, 0xFFEFF47D, 0x85845DD1, 
+    0x6FA87E4F, 0xFE2CE6E0, 0xA3014314, 0x4E0811A1, 0xF7537E82, 0xBD3AF235, 0x2AD7D2BB, 0xEB86D391,
+];
+
+const SHIFTS: [u8; 32] = [
+    0x07, 0x19, 0x0C, 0x14, 0x11, 0x0F, 0x16, 0x0A, 
+    0x05, 0x1B, 0x09, 0x17, 0x0E, 0x12, 0x14, 0x0C, 
+    0x04, 0x1C, 0x0B, 0x15, 0x10, 0x10, 0x17, 0x09, 
+    0x06, 0x1A, 0x0A, 0x16, 0x0F, 0x11, 0x15, 0x0B,
+];
+
+#[derive(Clone,Copy,Debug)]
+pub struct State<T> { // fixme exclude consts and shifts from debug output
+    a: T,
+    b: T,
+    c: T,
+    d: T,
+    consts: [T; 64],
+    shifts: [T; 32],
 }
 
-impl Block {
-    pub const LENGTH: usize = 64;
-
+impl<T: WrappingAdd<Output = T> + WrappingAdd<u32, Output = T> + BitAnd<Output = T> + BitOr<Output = T> + BitXor<Output = T> + Copy + From<u32> + From1<u8> + Not<Output = T> + Shl<Output = T> + Shr<Output = T>> State<T> {
     #[inline]
-    pub fn new() -> Block {
+    pub fn new() -> Self {
         Self {
-            block: [0_u8; Self::LENGTH],
-            length: 0,
+            a: T::from(A),
+            b: T::from(B),
+            c: T::from(C),
+            d: T::from(D),
+            consts: [
+                T::from(CONSTS[ 0]), T::from(CONSTS[ 1]), T::from(CONSTS[ 2]), T::from(CONSTS[ 3]), T::from(CONSTS[ 4]), T::from(CONSTS[ 5]), T::from(CONSTS[ 6]), T::from(CONSTS[ 7]),
+                T::from(CONSTS[ 8]), T::from(CONSTS[ 9]), T::from(CONSTS[10]), T::from(CONSTS[11]), T::from(CONSTS[12]), T::from(CONSTS[13]), T::from(CONSTS[14]), T::from(CONSTS[15]),
+                T::from(CONSTS[16]), T::from(CONSTS[17]), T::from(CONSTS[18]), T::from(CONSTS[19]), T::from(CONSTS[20]), T::from(CONSTS[21]), T::from(CONSTS[22]), T::from(CONSTS[23]),
+                T::from(CONSTS[24]), T::from(CONSTS[25]), T::from(CONSTS[26]), T::from(CONSTS[27]), T::from(CONSTS[28]), T::from(CONSTS[29]), T::from(CONSTS[30]), T::from(CONSTS[31]),
+                T::from(CONSTS[32]), T::from(CONSTS[33]), T::from(CONSTS[34]), T::from(CONSTS[35]), T::from(CONSTS[36]), T::from(CONSTS[37]), T::from(CONSTS[38]), T::from(CONSTS[39]),
+                T::from(CONSTS[40]), T::from(CONSTS[41]), T::from(CONSTS[42]), T::from(CONSTS[43]), T::from(CONSTS[44]), T::from(CONSTS[45]), T::from(CONSTS[46]), T::from(CONSTS[47]),
+                T::from(CONSTS[48]), T::from(CONSTS[49]), T::from(CONSTS[50]), T::from(CONSTS[51]), T::from(CONSTS[52]), T::from(CONSTS[53]), T::from(CONSTS[54]), T::from(CONSTS[55]),
+                T::from(CONSTS[56]), T::from(CONSTS[57]), T::from(CONSTS[58]), T::from(CONSTS[59]), T::from(CONSTS[60]), T::from(CONSTS[61]), T::from(CONSTS[62]), T::from(CONSTS[63]),
+            ],
+            shifts: [
+                T::from1(SHIFTS[ 0]), T::from1(SHIFTS[ 1]), T::from1(SHIFTS[ 2]), T::from1(SHIFTS[ 3]), T::from1(SHIFTS[ 4]), T::from1(SHIFTS[ 5]), T::from1(SHIFTS[ 6]), T::from1(SHIFTS[ 7]),
+                T::from1(SHIFTS[ 8]), T::from1(SHIFTS[ 9]), T::from1(SHIFTS[10]), T::from1(SHIFTS[11]), T::from1(SHIFTS[12]), T::from1(SHIFTS[13]), T::from1(SHIFTS[14]), T::from1(SHIFTS[15]),
+                T::from1(SHIFTS[16]), T::from1(SHIFTS[17]), T::from1(SHIFTS[18]), T::from1(SHIFTS[19]), T::from1(SHIFTS[20]), T::from1(SHIFTS[21]), T::from1(SHIFTS[22]), T::from1(SHIFTS[23]),
+                T::from1(SHIFTS[24]), T::from1(SHIFTS[25]), T::from1(SHIFTS[26]), T::from1(SHIFTS[27]), T::from1(SHIFTS[28]), T::from1(SHIFTS[29]), T::from1(SHIFTS[30]), T::from1(SHIFTS[31]),
+            ],
         }
     }
 
-    #[inline]
-    pub fn data(&self) -> &[u8] {
-        &self.block[..]
-    }
-
-    #[inline]
-    pub fn length(&self) -> usize {
-        self.length
-    }
-
-    #[inline]
-    pub fn empty(&self) -> bool {
-        self.length == 0
-    }
-
-    #[inline]
-    pub fn full(&self) -> bool {
-        self.length == Self::LENGTH
-    }
-
-    #[inline]
-    pub fn add(&mut self, data: &[u8]) -> usize {
-        let start = self.length;
-        let end = min(start + data.len(), Self::LENGTH);
-        let block = &mut self.block[start..end];
-        let length = end - start;
-        assert!(block.len() == length);
-        assert!(data.len() >= length);
-        block.clone_from_slice(&data[..length]);
-        self.length += length;
-        length
-    }
-
-    #[inline]
-    pub fn fill(&mut self, data: &[u8]) -> usize {
-        self.clear();
-        self.add(data)
-    }
-
-    #[inline]
-    pub fn clear(&mut self) {
-        self.block = [0_u8; Self::LENGTH];
-        self.length = 0;
-    }
-}
-
-impl Debug for Block {
-    #[inline]
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
-        write!(f, "Block {{ data: {:?}, length: {:?} }}", &self.block[..], self.length)
-    }
-}
-
-impl Default for Block {
-    #[inline]
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl Eq for Block {}
-
-impl PartialEq for Block {
-    #[inline]
-    fn eq(&self, other: &Self) -> bool {
-        (self.block[..] == other.block[..]) && (self.length == other.length)
-    }
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct Digest {
-    digest: [u8; 16],
-}
-
-impl Digest {
-    pub const LENGTH: usize = 16;
-
-    #[inline]
-    pub fn new(digest: [u8; 16]) -> Digest {
-        Digest { digest }
-    }
-
-    #[inline]
-    fn to_hex(&self) -> String {
-        self.digest
-            .iter()
-            .map(|digit| format!("{:02x}", digit))
-            .collect::<String>()
-    }
-
-    #[inline]
-    pub fn to_raw(&self) -> [u8; 16] {
-        self.digest
-    }
-}
-
-#[inline]
-pub fn new() -> Context {
-    Context::new()
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct Context {
-    a: u32,
-    b: u32,
-    c: u32,
-    d: u32,
-    length: usize,
-    block: Block,
-}
-
-impl Context {
-    #[inline]
-    #[allow(clippy::unreadable_literal)]
-    pub fn new() -> Context {
-        Context {
-            a: 0x67452301,
-            b: 0xEFCDAB89,
-            c: 0x98BADCFE,
-            d: 0x10325476,
-            length: 0,
-            block: Block::new(),
-        }
-    }
-
-    #[inline]
-    #[allow(clippy::clone_on_copy)]
-    fn digest(&self) -> Digest {
-        let mut context = self.clone();
-        context.finalize();
-        let mut digest = [0_u8; Digest::LENGTH];
-        digest[ 0.. 4].clone_from_slice(&context.a.to_le_bytes());
-        digest[ 4.. 8].clone_from_slice(&context.b.to_le_bytes());
-        digest[ 8..12].clone_from_slice(&context.c.to_le_bytes());
-        digest[12..16].clone_from_slice(&context.d.to_le_bytes());
-        Digest::new(digest)
-    }
-
-    #[inline]
-    fn finalize(&mut self) {
-        #[inline]
-        fn padding_length(length: usize) -> [u8; 64] {
-            let length = length as u64;
-            let length = length * 8; // convert byte-length into bits-length
-            let length = length.to_le_bytes();
-
-            let mut data = [0_u8; Block::LENGTH];
-            data[(Block::LENGTH - 8)..].clone_from_slice(&length);
-            data
-        }
-
-        #[inline]
-        fn padding_index(index: usize, length: usize) -> [u8; 64] {
-            let mut data = padding_length(length);
-            data[index] = 0x80;
-            data
-        }
-
-        #[inline]
-        fn padding(length: usize) -> [u8; 64] {
-            padding_index(0, length)
-        }
-
-        let block_filling_data_length = self.block.length();
-        let processed_data_length = self.length + block_filling_data_length;
-        if self.block.full() { // should never happen?
-            // create new full padding block
-
-            let mut block = self.block;
-            self.process_block(&block);
-
-            let padding = padding(processed_data_length);
-            block.fill(&padding);
-            self.process_block(&block);
-        } else if (block_filling_data_length + 1) > (Block::LENGTH - 8) {
-            // create new partial padding block
-
-            let padding = [0x80_u8];
-            let mut block = self.block;
-            block.add(&padding);
-            self.process_block(&block);
-
-            let padding = padding_length(processed_data_length);
-            block.fill(&padding);
-            self.process_block(&block);
-        } else {
-            // fill existing block with padding
-
-            let padding = padding_index(block_filling_data_length, processed_data_length);
-            let mut block = self.block;
-            block.add(&padding[block_filling_data_length..]);
-            self.process_block(&block);
-        }
-    }
-
-    #[inline]
-    #[allow(clippy::unreadable_literal)]
-    fn process_block(&mut self, block: &Block) {
-        let block = block.data();
-        let block = [
-            u32::from_le_bytes([block[ 0], block[ 1], block[ 2], block[ 3]]),
-            u32::from_le_bytes([block[ 4], block[ 5], block[ 6], block[ 7]]),
-            u32::from_le_bytes([block[ 8], block[ 9], block[10], block[11]]),
-            u32::from_le_bytes([block[12], block[13], block[14], block[15]]),
-            u32::from_le_bytes([block[16], block[17], block[18], block[19]]),
-            u32::from_le_bytes([block[20], block[21], block[22], block[23]]),
-            u32::from_le_bytes([block[24], block[25], block[26], block[27]]),
-            u32::from_le_bytes([block[28], block[29], block[30], block[31]]),
-            u32::from_le_bytes([block[32], block[33], block[34], block[35]]),
-            u32::from_le_bytes([block[36], block[37], block[38], block[39]]),
-            u32::from_le_bytes([block[40], block[41], block[42], block[43]]),
-            u32::from_le_bytes([block[44], block[45], block[46], block[47]]),
-            u32::from_le_bytes([block[48], block[49], block[50], block[51]]),
-            u32::from_le_bytes([block[52], block[53], block[54], block[55]]),
-            u32::from_le_bytes([block[56], block[57], block[58], block[59]]),
-            u32::from_le_bytes([block[60], block[61], block[62], block[63]]),
-        ];
-
+    pub fn update(&mut self, block: [T; 16]) {
         let (a, b, c, d) = (self.a, self.b, self.c, self.d);
 
         // Round 1
 
         #[inline]
-        fn f(x: u32, y: u32, z: u32) -> u32 {
+        fn f<T>(x: T, y: T, z: T) -> T
+        where T: BitAnd<Output = T> + BitOr<Output = T> + Copy + Not<Output = T> {
             (x & y) | (!x & z)
         }
 
         #[inline]
-        fn ff(a: u32, b: u32, c: u32, d: u32, data: u32, rotation: u32, constant: u32) -> u32 {
-            a.wrapping_add(f(b, c, d))
-                .wrapping_add(data)
-                .wrapping_add(constant)
-                .rotate_left(rotation)
-                .wrapping_add(b)
+        #[allow(clippy::many_single_char_names,clippy::too_many_arguments)]
+        fn ff<T>(a: T, b: T, c: T, d: T, data: T, shl: T, shr: T, constant: T) -> T
+        where T: WrappingAdd<Output = T> + WrappingAdd<u32, Output = T> + BitAnd<Output = T> + BitOr<Output = T> + Copy + Not<Output = T> + Shl<Output = T> + Shr<Output = T> {
+            let x = a.wrapping_add(f(b, c, d)).wrapping_add(data).wrapping_add(constant);
+            ((x << shl) | (x >> shr)).wrapping_add(b)
         }
 
-        let a = ff(a, b, c, d, block[ 0],  7, 0xD76AA478);
-        let d = ff(d, a, b, c, block[ 1], 12, 0xE8C7B756);
-        let c = ff(c, d, a, b, block[ 2], 17, 0x242070DB);
-        let b = ff(b, c, d, a, block[ 3], 22, 0xC1BDCEEE);
-        let a = ff(a, b, c, d, block[ 4],  7, 0xF57C0FAF);
-        let d = ff(d, a, b, c, block[ 5], 12, 0x4787C62A);
-        let c = ff(c, d, a, b, block[ 6], 17, 0xA8304613);
-        let b = ff(b, c, d, a, block[ 7], 22, 0xFD469501);
-        let a = ff(a, b, c, d, block[ 8],  7, 0x698098D8);
-        let d = ff(d, a, b, c, block[ 9], 12, 0x8B44F7AF);
-        let c = ff(c, d, a, b, block[10], 17, 0xFFFF5BB1);
-        let b = ff(b, c, d, a, block[11], 22, 0x895CD7BE);
-        let a = ff(a, b, c, d, block[12],  7, 0x6B901122);
-        let d = ff(d, a, b, c, block[13], 12, 0xFD987193);
-        let c = ff(c, d, a, b, block[14], 17, 0xA679438E);
-        let b = ff(b, c, d, a, block[15], 22, 0x49B40821);
+        let a = ff(a, b, c, d, block[0x0], self.shifts[0x0], self.shifts[0x1], self.consts[0x00]);
+        let d = ff(d, a, b, c, block[0x1], self.shifts[0x2], self.shifts[0x3], self.consts[0x01]);
+        let c = ff(c, d, a, b, block[0x2], self.shifts[0x4], self.shifts[0x5], self.consts[0x02]);
+        let b = ff(b, c, d, a, block[0x3], self.shifts[0x6], self.shifts[0x7], self.consts[0x03]);
+        let a = ff(a, b, c, d, block[0x4], self.shifts[0x0], self.shifts[0x1], self.consts[0x04]);
+        let d = ff(d, a, b, c, block[0x5], self.shifts[0x2], self.shifts[0x3], self.consts[0x05]);
+        let c = ff(c, d, a, b, block[0x6], self.shifts[0x4], self.shifts[0x5], self.consts[0x06]);
+        let b = ff(b, c, d, a, block[0x7], self.shifts[0x6], self.shifts[0x7], self.consts[0x07]);
+        let a = ff(a, b, c, d, block[0x8], self.shifts[0x0], self.shifts[0x1], self.consts[0x08]);
+        let d = ff(d, a, b, c, block[0x9], self.shifts[0x2], self.shifts[0x3], self.consts[0x09]);
+        let c = ff(c, d, a, b, block[0xA], self.shifts[0x4], self.shifts[0x5], self.consts[0x0A]);
+        let b = ff(b, c, d, a, block[0xB], self.shifts[0x6], self.shifts[0x7], self.consts[0x0B]);
+        let a = ff(a, b, c, d, block[0xC], self.shifts[0x0], self.shifts[0x1], self.consts[0x0C]);
+        let d = ff(d, a, b, c, block[0xD], self.shifts[0x2], self.shifts[0x3], self.consts[0x0D]);
+        let c = ff(c, d, a, b, block[0xE], self.shifts[0x4], self.shifts[0x5], self.consts[0x0E]);
+        let b = ff(b, c, d, a, block[0xF], self.shifts[0x6], self.shifts[0x7], self.consts[0x0F]);
 
         // Round 2
 
         #[inline]
-        fn g(x: u32, y: u32, z: u32) -> u32 {
+        fn g<T>(x: T, y: T, z: T) -> T
+        where T: BitAnd<Output = T> + BitOr<Output = T> + Copy + Not<Output = T> {
             (x & z) | (y & !z)
         }
 
         #[inline]
-        fn gg(a: u32, b: u32, c: u32, d: u32, data: u32, rotation: u32, constant: u32) -> u32 {
-            a.wrapping_add(g(b, c, d))
-                .wrapping_add(data)
-                .wrapping_add(constant)
-                .rotate_left(rotation)
-                .wrapping_add(b)
+        #[allow(clippy::many_single_char_names,clippy::too_many_arguments)]
+        fn gg<T>(a: T, b: T, c: T, d: T, data: T, shl: T, shr: T, constant: T) -> T 
+        where T: WrappingAdd<Output = T> + WrappingAdd<u32, Output = T> + BitAnd<Output = T> + BitOr<Output = T> + Copy + Not<Output = T> + Shl<Output = T> + Shr<Output = T> {
+            let x = a.wrapping_add(g(b, c, d)).wrapping_add(data).wrapping_add(constant);
+            ((x << shl) | (x >> shr)).wrapping_add(b)
         }
 
-        let a = gg(a, b, c, d, block[ 1],  5, 0xF61E2562);
-        let d = gg(d, a, b, c, block[ 6],  9, 0xC040B340);
-        let c = gg(c, d, a, b, block[11], 14, 0x265E5A51);
-        let b = gg(b, c, d, a, block[ 0], 20, 0xE9B6C7AA);
-        let a = gg(a, b, c, d, block[ 5],  5, 0xD62F105D);
-        let d = gg(d, a, b, c, block[10],  9, 0x02441453);
-        let c = gg(c, d, a, b, block[15], 14, 0xD8A1E681);
-        let b = gg(b, c, d, a, block[ 4], 20, 0xE7D3FBC8);
-        let a = gg(a, b, c, d, block[ 9],  5, 0x21E1CDE6);
-        let d = gg(d, a, b, c, block[14],  9, 0xC33707D6);
-        let c = gg(c, d, a, b, block[ 3], 14, 0xF4D50D87);
-        let b = gg(b, c, d, a, block[ 8], 20, 0x455A14ED);
-        let a = gg(a, b, c, d, block[13],  5, 0xA9E3E905);
-        let d = gg(d, a, b, c, block[ 2],  9, 0xFCEFA3F8);
-        let c = gg(c, d, a, b, block[ 7], 14, 0x676F02D9);
-        let b = gg(b, c, d, a, block[12], 20, 0x8D2A4C8A);
+        let a = gg(a, b, c, d, block[0x1], self.shifts[0x08], self.shifts[0x09], self.consts[0x10]);
+        let d = gg(d, a, b, c, block[0x6], self.shifts[0x0A], self.shifts[0x0B], self.consts[0x11]);
+        let c = gg(c, d, a, b, block[0xB], self.shifts[0x0C], self.shifts[0x0D], self.consts[0x12]);
+        let b = gg(b, c, d, a, block[0x0], self.shifts[0x0E], self.shifts[0x0F], self.consts[0x13]);
+        let a = gg(a, b, c, d, block[0x5], self.shifts[0x08], self.shifts[0x09], self.consts[0x14]);
+        let d = gg(d, a, b, c, block[0xA], self.shifts[0x0A], self.shifts[0x0B], self.consts[0x15]);
+        let c = gg(c, d, a, b, block[0xF], self.shifts[0x0C], self.shifts[0x0D], self.consts[0x16]);
+        let b = gg(b, c, d, a, block[0x4], self.shifts[0x0E], self.shifts[0x0F], self.consts[0x17]);
+        let a = gg(a, b, c, d, block[0x9], self.shifts[0x08], self.shifts[0x09], self.consts[0x18]);
+        let d = gg(d, a, b, c, block[0xE], self.shifts[0x0A], self.shifts[0x0B], self.consts[0x19]);
+        let c = gg(c, d, a, b, block[0x3], self.shifts[0x0C], self.shifts[0x0D], self.consts[0x1A]);
+        let b = gg(b, c, d, a, block[0x8], self.shifts[0x0E], self.shifts[0x0F], self.consts[0x1B]);
+        let a = gg(a, b, c, d, block[0xD], self.shifts[0x08], self.shifts[0x09], self.consts[0x1C]);
+        let d = gg(d, a, b, c, block[0x2], self.shifts[0x0A], self.shifts[0x0B], self.consts[0x1D]);
+        let c = gg(c, d, a, b, block[0x7], self.shifts[0x0C], self.shifts[0x0D], self.consts[0x1E]);
+        let b = gg(b, c, d, a, block[0xC], self.shifts[0x0E], self.shifts[0x0F], self.consts[0x1F]);
 
         // Round 3
 
         #[inline]
-        fn h(x: u32, y: u32, z: u32) -> u32 {
+        fn h<T>(x: T, y: T, z: T) -> T
+        where T: BitXor<Output = T> + Copy {
             x ^ y ^ z
         }
 
         #[inline]
-        fn hh(a: u32, b: u32, c: u32, d: u32, data: u32, rotation: u32, constant: u32) -> u32 {
-            a.wrapping_add(h(b, c, d))
-                .wrapping_add(data)
-                .wrapping_add(constant)
-                .rotate_left(rotation)
-                .wrapping_add(b)
+        #[allow(clippy::many_single_char_names,clippy::too_many_arguments)]
+        fn hh<T>(a: T, b: T, c: T, d: T, data: T, shl: T, shr: T, constant: T) -> T
+        where T: WrappingAdd<Output = T> + WrappingAdd<u32, Output = T> + BitOr<Output = T> + BitXor<Output = T> + Copy + Shl<Output = T> + Shr<Output = T> {
+            let x = a.wrapping_add(h(b, c, d)).wrapping_add(data).wrapping_add(constant);
+            ((x << shl) | (x >> shr)).wrapping_add(b)
         }
 
-        let a = hh(a, b, c, d, block[ 5],  4, 0xFFFA3942);
-        let d = hh(d, a, b, c, block[ 8], 11, 0x8771F681);
-        let c = hh(c, d, a, b, block[11], 16, 0x6D9D6122);
-        let b = hh(b, c, d, a, block[14], 23, 0xFDE5380C);
-        let a = hh(a, b, c, d, block[ 1],  4, 0xA4BEEA44);
-        let d = hh(d, a, b, c, block[ 4], 11, 0x4BDECFA9);
-        let c = hh(c, d, a, b, block[ 7], 16, 0xF6BB4B60);
-        let b = hh(b, c, d, a, block[10], 23, 0xBEBFBC70);
-        let a = hh(a, b, c, d, block[13],  4, 0x289B7EC6);
-        let d = hh(d, a, b, c, block[ 0], 11, 0xEAA127FA);
-        let c = hh(c, d, a, b, block[ 3], 16, 0xD4EF3085);
-        let b = hh(b, c, d, a, block[ 6], 23, 0x04881D05);
-        let a = hh(a, b, c, d, block[ 9],  4, 0xD9D4D039);
-        let d = hh(d, a, b, c, block[12], 11, 0xE6DB99E5);
-        let c = hh(c, d, a, b, block[15], 16, 0x1FA27CF8);
-        let b = hh(b, c, d, a, block[ 2], 23, 0xC4AC5665);
+        let a = hh(a, b, c, d, block[0x5], self.shifts[0x10], self.shifts[0x11], self.consts[0x20]);
+        let d = hh(d, a, b, c, block[0x8], self.shifts[0x12], self.shifts[0x13], self.consts[0x21]);
+        let c = hh(c, d, a, b, block[0xB], self.shifts[0x14], self.shifts[0x15], self.consts[0x22]);
+        let b = hh(b, c, d, a, block[0xE], self.shifts[0x16], self.shifts[0x17], self.consts[0x23]);
+        let a = hh(a, b, c, d, block[0x1], self.shifts[0x10], self.shifts[0x11], self.consts[0x24]);
+        let d = hh(d, a, b, c, block[0x4], self.shifts[0x12], self.shifts[0x13], self.consts[0x25]);
+        let c = hh(c, d, a, b, block[0x7], self.shifts[0x14], self.shifts[0x15], self.consts[0x26]);
+        let b = hh(b, c, d, a, block[0xA], self.shifts[0x16], self.shifts[0x17], self.consts[0x27]);
+        let a = hh(a, b, c, d, block[0xD], self.shifts[0x10], self.shifts[0x11], self.consts[0x28]);
+        let d = hh(d, a, b, c, block[0x0], self.shifts[0x12], self.shifts[0x13], self.consts[0x29]);
+        let c = hh(c, d, a, b, block[0x3], self.shifts[0x14], self.shifts[0x15], self.consts[0x2A]);
+        let b = hh(b, c, d, a, block[0x6], self.shifts[0x16], self.shifts[0x17], self.consts[0x2B]);
+        let a = hh(a, b, c, d, block[0x9], self.shifts[0x10], self.shifts[0x11], self.consts[0x2C]);
+        let d = hh(d, a, b, c, block[0xC], self.shifts[0x12], self.shifts[0x13], self.consts[0x2D]);
+        let c = hh(c, d, a, b, block[0xF], self.shifts[0x14], self.shifts[0x15], self.consts[0x2E]);
+        let b = hh(b, c, d, a, block[0x2], self.shifts[0x16], self.shifts[0x17], self.consts[0x2F]);
 
         // Round 4
 
         #[inline]
-        fn i(x: u32, y: u32, z: u32) -> u32 {
+        fn i<T>(x: T, y: T, z: T) -> T
+        where T: BitOr<Output = T> + BitXor<Output = T> + Copy + Not<Output = T> {
             y ^ (x | !z)
         }
 
         #[inline]
-        fn ii(a: u32, b: u32, c: u32, d: u32, data: u32, rotation: u32, constant: u32) -> u32 {
-            a.wrapping_add(i(b, c, d))
-                .wrapping_add(data)
-                .wrapping_add(constant)
-                .rotate_left(rotation)
-                .wrapping_add(b)
+        #[allow(clippy::many_single_char_names,clippy::too_many_arguments)]
+        fn ii<T>(a: T, b: T, c: T, d: T, data: T, shl: T, shr: T, constant: T) -> T
+        where T: WrappingAdd<Output = T> + WrappingAdd<u32, Output = T> + BitOr<Output = T> + BitXor<Output = T> + Copy + Not<Output = T> + Shl<Output = T> + Shr<Output = T> {
+            let x = a.wrapping_add(i(b, c, d)).wrapping_add(data).wrapping_add(constant);
+            ((x << shl) | (x >> shr)).wrapping_add(b)
         }
 
-        let a = ii(a, b, c, d, block[ 0],  6, 0xF4292244);
-        let d = ii(d, a, b, c, block[ 7], 10, 0x432AFF97);
-        let c = ii(c, d, a, b, block[14], 15, 0xAB9423A7);
-        let b = ii(b, c, d, a, block[ 5], 21, 0xFC93A039);
-        let a = ii(a, b, c, d, block[12],  6, 0x655B59C3);
-        let d = ii(d, a, b, c, block[ 3], 10, 0x8F0CCC92);
-        let c = ii(c, d, a, b, block[10], 15, 0xFFEFF47D);
-        let b = ii(b, c, d, a, block[ 1], 21, 0x85845DD1);
-        let a = ii(a, b, c, d, block[ 8],  6, 0x6FA87E4F);
-        let d = ii(d, a, b, c, block[15], 10, 0xFE2CE6E0);
-        let c = ii(c, d, a, b, block[ 6], 15, 0xA3014314);
-        let b = ii(b, c, d, a, block[13], 21, 0x4E0811A1);
-        let a = ii(a, b, c, d, block[ 4],  6, 0xF7537E82);
-        let d = ii(d, a, b, c, block[11], 10, 0xBD3AF235);
-        let c = ii(c, d, a, b, block[ 2], 15, 0x2AD7D2BB);
-        let b = ii(b, c, d, a, block[ 9], 21, 0xEB86D391);
+        let a = ii(a, b, c, d, block[0x0], self.shifts[0x18], self.shifts[0x19], self.consts[0x30]);
+        let d = ii(d, a, b, c, block[0x7], self.shifts[0x1A], self.shifts[0x1B], self.consts[0x31]);
+        let c = ii(c, d, a, b, block[0xE], self.shifts[0x1C], self.shifts[0x1D], self.consts[0x32]);
+        let b = ii(b, c, d, a, block[0x5], self.shifts[0x1E], self.shifts[0x1F], self.consts[0x33]);
+        let a = ii(a, b, c, d, block[0xC], self.shifts[0x18], self.shifts[0x19], self.consts[0x34]);
+        let d = ii(d, a, b, c, block[0x3], self.shifts[0x1A], self.shifts[0x1B], self.consts[0x35]);
+        let c = ii(c, d, a, b, block[0xA], self.shifts[0x1C], self.shifts[0x1D], self.consts[0x36]);
+        let b = ii(b, c, d, a, block[0x1], self.shifts[0x1E], self.shifts[0x1F], self.consts[0x37]);
+        let a = ii(a, b, c, d, block[0x8], self.shifts[0x18], self.shifts[0x19], self.consts[0x38]);
+        let d = ii(d, a, b, c, block[0xF], self.shifts[0x1A], self.shifts[0x1B], self.consts[0x39]);
+        let c = ii(c, d, a, b, block[0x6], self.shifts[0x1C], self.shifts[0x1D], self.consts[0x3A]);
+        let b = ii(b, c, d, a, block[0xD], self.shifts[0x1E], self.shifts[0x1F], self.consts[0x3B]);
+        let a = ii(a, b, c, d, block[0x4], self.shifts[0x18], self.shifts[0x19], self.consts[0x3C]);
+        let d = ii(d, a, b, c, block[0xB], self.shifts[0x1A], self.shifts[0x1B], self.consts[0x3D]);
+        let c = ii(c, d, a, b, block[0x2], self.shifts[0x1C], self.shifts[0x1D], self.consts[0x3E]);
+        let b = ii(b, c, d, a, block[0x9], self.shifts[0x1E], self.shifts[0x1F], self.consts[0x3F]);
 
         // Update state
 
@@ -378,227 +209,362 @@ impl Context {
         self.b = self.b.wrapping_add(b);
         self.c = self.c.wrapping_add(c);
         self.d = self.d.wrapping_add(d);
+    }
+}
 
-        // Update length
+impl<T: From<u32>> super::Reset for State<T> {
+    #[inline]
+    fn reset(&mut self) {
+        self.a = T::from(A);
+        self.b = T::from(B);
+        self.c = T::from(C);
+        self.d = T::from(D);
+    }
+}
 
-        self.length += Block::LENGTH;
+#[derive(Clone, Copy, Debug)]
+pub struct Padding { // <T: Copy>
+    processed: usize,
+    // data: PhantomData<T>,
+}
+
+// impl<T: Copy> Padding<T> {
+impl Padding {
+    #[inline]
+    pub fn new() -> Self {
+        Self {
+            processed: 0,
+            // data: PhantomData,
+        }
+    }
+
+    // #[inline]
+    // pub fn update<T>(&mut self, data: &[T]) {
+    //     self.processed += data.len()
+    // }
+
+    // #[inline]
+    // pub fn finalize<T>(&self) -> Vec<T> 
+    // where T: Clone + From<u8> {
+    //     const BLOCK_LENGTH: usize = 64;
+    //
+    //     let length = self.processed as u64;
+    //     let length = length * 8; // convert byte-length into bits-length
+    //     let length = length.to_le_bytes(); // fixme verify endianness
+    //     let length = [
+    //         T::from(length[0]),
+    //         T::from(length[1]),
+    //         T::from(length[2]),
+    //         T::from(length[3]),
+    //         T::from(length[4]),
+    //         T::from(length[5]),
+    //         T::from(length[6]),
+    //         T::from(length[7]),
+    //     ];
+    //
+    //     let processed = self.processed % BLOCK_LENGTH;
+    //
+    //     let mut padding = vec![T::from(0x80u8)];
+    //     if (processed + 1 + length.len()) > BLOCK_LENGTH {
+    //         padding.extend(vec![T::from(0x00u8); (2 * BLOCK_LENGTH) - (processed + 1 + length.len())]);
+    //     } else {
+    //         padding.extend(vec![T::from(0x00u8); BLOCK_LENGTH - (processed + 1 + length.len())]);
+    //     }
+    //     padding.extend_from_slice(&length[..]);
+    //     padding
+    // }
+}
+
+impl<T: Copy + From<u8>> super::Data<Vec<T>> for Padding {
+    #[inline]
+    fn data(&self) -> Vec<T> {
+        const BLOCK_LENGTH: usize = 64;
+    
+        let length = self.processed as u64;
+        let length = length * 8; // convert byte-length into bits-length
+        let length = length.to_le_bytes(); // fixme verify endianness
+        let length = [
+            T::from(length[0]),
+            T::from(length[1]),
+            T::from(length[2]),
+            T::from(length[3]),
+            T::from(length[4]),
+            T::from(length[5]),
+            T::from(length[6]),
+            T::from(length[7]),
+        ];
+    
+        let processed = self.processed % BLOCK_LENGTH;
+    
+        let mut padding = vec![T::from(0x80u8)];
+        if (processed + 1 + length.len()) > BLOCK_LENGTH {
+            padding.extend(vec![T::from(0x00u8); (2 * BLOCK_LENGTH) - (processed + 1 + length.len())]);
+        } else {
+            padding.extend(vec![T::from(0x00u8); BLOCK_LENGTH - (processed + 1 + length.len())]);
+        }
+        padding.extend_from_slice(&length[..]);
+        padding
+    }
+}
+
+impl super::Finalize for Padding {
+    #[inline]
+    fn finalize(&mut self) {}
+}
+
+impl<T: Copy + From<u8>> super::Padding<T> for Padding {}
+
+impl super::Reset for Padding {
+    #[inline]
+    fn reset(&mut self) {
+        self.processed = 0;
+    }
+}
+
+impl<T> super::Update<T> for Padding {
+    #[inline]
+    fn update(&mut self, data: &[T]) {
+        self.processed += data.len()
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct Digest<T>(T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T);
+
+impl<T: Copy, U: ToLeBytes<[T; 4]>> From<State<U>> for Digest<T> {
+    #[inline]
+    fn from(state: State<U>) -> Self {
+        let (a, b, c, d) = (state.a, state.b, state.c, state.d);
+        let (a, b, c, d) = (a.to_le_bytes(), b.to_le_bytes(), c.to_le_bytes(), d.to_le_bytes());
+        Digest(a[0], a[1], a[2], a[3], b[0], b[1], b[2], b[3], c[0], c[1], c[2], c[3], d[0], d[1], d[2], d[3])
+    }
+}
+
+impl<T> From<(T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T)> for Digest<T> {
+    #[inline]
+    fn from(digest: (T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T)) -> Self {
+        Digest(digest.0, digest.1, digest.2, digest.3, digest.4, digest.5, digest.6, digest.7, digest.8, digest.9, digest.10, digest.11, digest.12, digest.13, digest.14, digest.15)
+    }
+}
+
+// impl<T> From<[T; 16]> for Digest<T> {
+//     #[inline]
+//     fn from(digest: [T; 16]) -> Self {
+//         Digest(digest[0], digest[1], digest[2], digest[3], digest[4], digest[5], digest[6], digest[7], digest[8], digest[9], digest[10], digest[11], digest[12], digest[13], digest[14], digest[15])
+//     }
+// }
+
+// impl<T> From<Digest<T>> for (T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T) {
+//     #[inline]
+//     fn from(digest: Digest<T>) -> Self {
+//         let digest: 
+//         (digest.0, digest.1, digest.2, digest.3, digest.4, digest.5, digest.6, digest.7, digest.8, digest.9, digest.10, digest.11, digest.12, digest.13, digest.14, digest.15)
+//     }
+// }
+
+// impl LowerHex for Digest<u32> {
+//     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+//         let Self(a, b, c, d) = self;
+//         // let a = LowerHex::fmt(&a, f);
+//         // let b = LowerHex::fmt(&b, f);
+//         // let c = LowerHex::fmt(&c, f);
+//         // let d = LowerHex::fmt(&d, f);
+//         write!(f, "{:x}{:x}{:x}{:x}", a, b, c, d)
+//     }
+// }
+
+// impl UpperHex for Digest<u32> {
+//     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+//         Ok(())
+//     }
+// }
+
+impl<T> Into<[T; 16]> for Digest<T> {
+    #[inline]
+    fn into(self) -> [T; 16] {
+        [self.0, self.1, self.2, self.3, self.4, self.5, self.6, self.7, self.8, self.9, self.10, self.11, self.12, self.13, self.14, self.15]
+    }
+}
+
+impl<T> super::Digest for Digest<T> {
+    type Digest = Vec<T>;
+
+    fn digest(&self) -> Self::Digest {
+        Vec::new()
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct Hash<T: Arch>
+where T::u8: Copy {
+    state: State<T::u32>,
+    buffer: Vec<T::u8>,
+    padding: Padding,
+}
+
+impl<R: Copy, S: WrappingAdd<Output = S> + WrappingAdd<u32, Output = S> + BitAnd<Output = S> + BitOr<Output = S> + BitXor<Output = S> + Copy + From<u32> + From1<u8> + Not<Output = S> + Shl<Output = S> + Shr<Output = S>, T: Arch<u8 = R, u32 = S>> Hash<T> {
+    #[inline]
+    pub fn new() -> Self {
+        Self {
+            state: State::new(),
+            buffer: Vec::new(),
+            padding: Padding::new(),
+        }
     }
 
     #[inline]
-    fn update(&mut self, data: &[u8]) -> usize {
+    pub fn padding(&self) -> Padding {
+        self.padding
+    }
+}
+
+impl<R: Copy, S: Copy + ToLeBytes<[R; 4]>, T: Arch<u8 = R, u32 = S>> super::Digest for Hash<T>
+where Digest<R>: From<State<S>> {
+    type Digest = Digest<T::u8>;
+
+    #[inline]
+    fn digest(&self) -> Self::Digest {
+        Digest::from(self.state)
+    }
+}
+
+impl<R: Copy + Clone + From<u8>, S: WrappingAdd<Output = S> + WrappingAdd<u32, Output = S> + BitAnd<Output = S> + BitOr<Output = S> + BitXor<Output = S> + Copy + From<u32> + From1<u8> + FromLeBytes<[R; 4]> + Not<Output = S> + Shl<Output = S> + Shr<Output = S> + ToLeBytes<[R; 4]>, T: Arch<u8 = R, u32 = S>> super::Finalize for Hash<T>
+where Digest<R>: From<State<S>> {
+    fn finalize(&mut self) {
+        self.padding.finalize();
+        let padding = self.padding.data();
+
+        let mut data = Vec::new();
+        data.extend_from_slice(&self.buffer[..]);
+        data.extend_from_slice(&padding[..]);
         let mut data = &data[..];
 
-        let mut processed: usize = 0;
-
-        let chunk = self.block.add(&data);
-        processed += chunk;
-        if self.block.full() {
-            data = &data[chunk..];
-
-            let block = self.block;
-            self.process_block(&block);
-
-            let iterations = data.len() / Block::LENGTH;
-            for _ in 0..iterations {
-                let chunk = &data[..Block::LENGTH];
-                processed += self.block.fill(&chunk);
-                let block = self.block;
-                self.process_block(&block);
-                data = &data[Block::LENGTH..];
-            }
-
-            processed += self.block.fill(&data);
+        const BLOCK_LENGTH: usize = 64;
+        
+        let block: [T::u32; 16] = [
+            T::u32::from_le_bytes([data[ 0], data[ 1], data[ 2], data[ 3]]),
+            T::u32::from_le_bytes([data[ 4], data[ 5], data[ 6], data[ 7]]),
+            T::u32::from_le_bytes([data[ 8], data[ 9], data[10], data[11]]),
+            T::u32::from_le_bytes([data[12], data[13], data[14], data[15]]),
+            T::u32::from_le_bytes([data[16], data[17], data[18], data[19]]),
+            T::u32::from_le_bytes([data[20], data[21], data[22], data[23]]),
+            T::u32::from_le_bytes([data[24], data[25], data[26], data[27]]),
+            T::u32::from_le_bytes([data[28], data[29], data[30], data[31]]),
+            T::u32::from_le_bytes([data[32], data[33], data[34], data[35]]),
+            T::u32::from_le_bytes([data[36], data[37], data[38], data[39]]),
+            T::u32::from_le_bytes([data[40], data[41], data[42], data[43]]),
+            T::u32::from_le_bytes([data[44], data[45], data[46], data[47]]),
+            T::u32::from_le_bytes([data[48], data[49], data[50], data[51]]),
+            T::u32::from_le_bytes([data[52], data[53], data[54], data[55]]),
+            T::u32::from_le_bytes([data[56], data[57], data[58], data[59]]),
+            T::u32::from_le_bytes([data[60], data[61], data[62], data[63]]),
+        ];
+        data = &data[BLOCK_LENGTH..];
+        self.state.update(block);
+        if !data.is_empty() {
+            let block: [T::u32; 16] = [
+                T::u32::from_le_bytes([data[ 0], data[ 1], data[ 2], data[ 3]]),
+                T::u32::from_le_bytes([data[ 4], data[ 5], data[ 6], data[ 7]]),
+                T::u32::from_le_bytes([data[ 8], data[ 9], data[10], data[11]]),
+                T::u32::from_le_bytes([data[12], data[13], data[14], data[15]]),
+                T::u32::from_le_bytes([data[16], data[17], data[18], data[19]]),
+                T::u32::from_le_bytes([data[20], data[21], data[22], data[23]]),
+                T::u32::from_le_bytes([data[24], data[25], data[26], data[27]]),
+                T::u32::from_le_bytes([data[28], data[29], data[30], data[31]]),
+                T::u32::from_le_bytes([data[32], data[33], data[34], data[35]]),
+                T::u32::from_le_bytes([data[36], data[37], data[38], data[39]]),
+                T::u32::from_le_bytes([data[40], data[41], data[42], data[43]]),
+                T::u32::from_le_bytes([data[44], data[45], data[46], data[47]]),
+                T::u32::from_le_bytes([data[48], data[49], data[50], data[51]]),
+                T::u32::from_le_bytes([data[52], data[53], data[54], data[55]]),
+                T::u32::from_le_bytes([data[56], data[57], data[58], data[59]]),
+                T::u32::from_le_bytes([data[60], data[61], data[62], data[63]]),
+            ];
+            self.state.update(block);
         }
-        processed
     }
 }
 
-impl Default for Context {
+impl<R: Copy + Clone + From<u8>, S: WrappingAdd<Output = S> + WrappingAdd<u32, Output = S> + BitAnd<Output = S> + BitOr<Output = S> + BitXor<Output = S> + Copy + From<u32> + From1<u8> + FromLeBytes<[R; 4]> + Not<Output = S> + Shl<Output = S> + Shr<Output = S> + ToLeBytes<[R; 4]>, T: Arch<u8 = R, u32 = S>> super::Hash<T::u8> for Hash<T>
+where Digest<R>: From<State<S>> {
+    type Padding = Padding;
+    
     #[inline]
-    fn default() -> Self {
-        Self::new()
+    fn processed(&self) -> usize {
+        self.padding.processed
+    }    
+}
+
+impl<R: Copy, S: From<u32>, T: Arch<u8 = R, u32 = S>> super::Reset for Hash<T> {
+    #[inline]
+    fn reset(&mut self) {
+        self.state.reset();
+        self.buffer.clear();
+        self.padding.reset();
     }
 }
 
-impl super::Hash for Context {
-    #[inline]
-    fn digest(&self) -> String {
-        self.digest().to_hex()
-    }
+impl<R: Clone + Copy, S: WrappingAdd<Output = S> + WrappingAdd<u32, Output = S> + BitAnd<Output = S> + BitOr<Output = S> + BitXor<Output = S> + Copy + From<u32> + From1<u8> + FromLeBytes<[R; 4]> + Not<Output = S> + Shl<Output = S> + Shr<Output = S>, T: Arch<u8 = R, u32 = S>> super::Update<T::u8> for Hash<T> {
+    fn update(&mut self, data: &[T::u8]) {
+        self.padding.update(data);
 
-    #[inline]
-    fn update(&mut self, data: &[u8]) -> usize {
-        self.update(data)
-    }
-}
+        const BLOCK_LENGTH: usize = 64;
 
-#[cfg(test)]
-pub mod tests {
-    use super::Block;
+        // fixme rewrite
+        // if buffer is not empty try to create one block
+        // try to create as many blocks as you can
+        // update buffer
 
-    #[test]
-    fn block_new() {
-        let block = Block::new();
-        assert_eq!(true, block.empty());
-        assert_eq!(false, block.full());
-        assert_eq!(0, block.length());
-        let data = [0_u8; Block::LENGTH];
-        assert_eq!(&data[..], block.data());
-    }
-
-    #[test]
-    fn block_single_add() {
-        let mut block = Block::new();
-        let data = [0, 1, 2, 3];
-        assert_eq!(4, block.add(&data));
-        assert_eq!(false, block.empty());
-        assert_eq!(false, block.full());
-        assert_eq!(4, block.length());
-        assert_eq!(data, block.data()[..4]);
-        let data = [0_u8; Block::LENGTH - 4];
-        assert_eq!(data[..], block.data()[4..]);
-    }
-
-    #[test]
-    fn block_multiple_add() {
-        let mut block = Block::new();
-        let data = [0, 1, 2, 3];
-        assert_eq!(4, block.add(&data));
-        let data = [0x0, 0xA, 0xB, 0xC, 0xD, 0xE, 0xF];
-        assert_eq!(7, block.add(&data));
-        assert_eq!(false, block.empty());
-        assert_eq!(false, block.full());
-        assert_eq!(11, block.length());
-        let data = [0, 1, 2, 3, 0x0, 0xA, 0xB, 0xC, 0xD, 0xE, 0xF];
-        assert_eq!(data, block.data()[..11]);
-        let data = [0_u8; Block::LENGTH - 11];
-        assert_eq!(data[..], block.data()[11..]);
-    }
-
-    #[test]
-    fn block_overflow_add() {
-        let mut block = Block::new();
-        let data = [1; Block::LENGTH + 1];
-        assert_eq!(Block::LENGTH, block.add(&data));
-        assert_eq!(false, block.empty());
-        assert_eq!(true, block.full());
-        assert_eq!(Block::LENGTH, block.length());
-        assert_eq!(&data[..Block::LENGTH], block.data());
-    }
-
-    #[test]
-    fn block_clear() {
-        let mut block = Block::new();
-        let data = [0, 1, 2, 3];
-        assert_eq!(4, block.add(&data));
-        block.clear();
-        let data = [0_u8; Block::LENGTH];
-        assert_eq!(true, block.empty());
-        assert_eq!(false, block.full());
-        assert_eq!(0, block.length());
-        assert_eq!(&data[..], block.data());
-    }
-
-    #[test]
-    fn block_fill_empty() {
-        let mut block = Block::new();
-        let data = [0, 1, 2, 3];
-        assert_eq!(4, block.fill(&data));
-        assert_eq!(false, block.empty());
-        assert_eq!(false, block.full());
-        assert_eq!(4, block.length());
-        assert_eq!(data, block.data()[..4]);
-        let data = [0_u8; Block::LENGTH - 4];
-        assert_eq!(data[..], block.data()[4..]);
-    }
-
-    #[test]
-    fn block_fill_less() {
-        let mut block = Block::new();
-        let data = [0, 1, 2, 3];
-        assert_eq!(4, block.add(&data));
-        let data = [2, 3, 5];
-        assert_eq!(3, block.fill(&data));
-        assert_eq!(false, block.empty());
-        assert_eq!(false, block.full());
-        assert_eq!(3, block.length());
-        assert_eq!(data, block.data()[..3]);
-        let data = [0_u8; Block::LENGTH - 3];
-        assert_eq!(data[..], block.data()[3..]);
-    }
-
-    #[test]
-    fn block_fill_more() {
-        let mut block = Block::new();
-        let data = [0, 1, 2, 3];
-        assert_eq!(4, block.add(&data));
-        let data = [2, 3, 5, 7, 11, 13, 17, 19, 23];
-        assert_eq!(9, block.fill(&data));
-        assert_eq!(false, block.empty());
-        assert_eq!(false, block.full());
-        assert_eq!(9, block.length());
-        assert_eq!(data, block.data()[..9]);
-        let data = [0_u8; Block::LENGTH - 9];
-        assert_eq!(data[..], block.data()[9..]);
-    }
-
-    #[test]
-    fn block_fill_overflow() {
-        let mut block = Block::new();
-        let data = [1u8; Block::LENGTH + 1];
-        assert_eq!(Block::LENGTH, block.fill(&data));
-        assert_eq!(false, block.empty());
-        assert_eq!(true, block.full());
-        assert_eq!(Block::LENGTH, block.length());
-        assert_eq!(&data[..Block::LENGTH], block.data());
-    }
-
-    use super::Digest;
-
-    #[test]
-    fn digest_new() {
-        let digest = Digest::new([0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77,
-                                  0x88, 0x99, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF]);
-        assert_eq!([0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77,
-                    0x88, 0x99, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF], digest.to_raw());
-        assert_eq!("00112233445566778899aabbccddeeff", digest.to_hex());
-    }
-
-    #[test]
-    fn md5_empty() {
-        let context = super::new();
-        assert_eq!(Digest::new([0xD4, 0x1D, 0x8C, 0xD9, 0x8F, 0x00, 0xB2, 0x04,
-                                0xE9, 0x80, 0x09, 0x98, 0xEC, 0xF8, 0x42, 0x7E]), context.digest());
-    }
-
-    #[test]
-    fn md5_hello_world() {
-        let mut context = super::new();
-        let text = "Hello World".as_bytes();
-        assert_eq!(text.len(), context.update(text));
-        assert_eq!(Digest::new([0xB1, 0x0A, 0x8D, 0xB1, 0x64, 0xE0, 0x75, 0x41,
-                                0x05, 0xB7, 0xA9, 0x9B, 0xE7, 0x2E, 0x3F, 0xE5]), context.digest());
-    }
-
-    #[test]
-    fn md5_hello_world_by_parts() {
-        let mut context = super::new();
-        let text = "Hello".as_bytes();
-        assert_eq!(text.len(), context.update(text));
-        let text = " ".as_bytes();
-        assert_eq!(text.len(), context.update(text));
-        let text = "World".as_bytes();
-        assert_eq!(text.len(), context.update(text));
-        assert_eq!(Digest::new([0xB1, 0x0A, 0x8D, 0xB1, 0x64, 0xE0, 0x75, 0x41,
-                                0x05, 0xB7, 0xA9, 0x9B, 0xE7, 0x2E, 0x3F, 0xE5]), context.digest());
-    }
-
-    #[test]
-    fn md5_lorem_ipsum() {
-        let mut context = super::new();
-        let text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus eget imperdiet libero. Quisque pulvinar lacinia turpis ac luctus. Suspendisse ut dui vehicula libero porttitor consectetur a quis felis. Praesent finibus efficitur justo a iaculis. Suspendisse rutrum sem sit amet lacus consequat ultrices. Duis blandit congue iaculis. Quisque eget quam enim. Cras tempor justo neque, dictum cursus mi facilisis nec. Donec tincidunt, felis non eleifend condimentum, mi tellus scelerisque nulla, vitae sagittis arcu libero vitae purus. Pellentesque pretium sem eu varius accumsan. Nullam vestibulum lacinia nisi, ac consequat erat volutpat et. Pellentesque eu imperdiet lorem. Vestibulum placerat condimentum sapien, a eleifend libero rutrum a. Cras eros tellus, consectetur vel ante et, pretium lacinia tortor. Quisque hendrerit orci neque, sed faucibus quam interdum quis.".as_bytes();
-        assert_eq!(text.len(), context.update(text));
-        assert_eq!(Digest::new([0xB1, 0x32, 0xF2, 0x8A, 0xF8, 0x82, 0xB0, 0x65,
-                                0x6A, 0x1F, 0x30, 0x97, 0xA1, 0x75, 0xEB, 0x72]), context.digest());
+        if self.buffer.is_empty() && (data.len() >= BLOCK_LENGTH) {
+            let mut data = data;
+            while data.len() >= BLOCK_LENGTH {
+                let block: [T::u32; 16] = [
+                    T::u32::from_le_bytes([data[ 0], data[ 1], data[ 2], data[ 3]]),
+                    T::u32::from_le_bytes([data[ 4], data[ 5], data[ 6], data[ 7]]),
+                    T::u32::from_le_bytes([data[ 8], data[ 9], data[10], data[11]]),
+                    T::u32::from_le_bytes([data[12], data[13], data[14], data[15]]),
+                    T::u32::from_le_bytes([data[16], data[17], data[18], data[19]]),
+                    T::u32::from_le_bytes([data[20], data[21], data[22], data[23]]),
+                    T::u32::from_le_bytes([data[24], data[25], data[26], data[27]]),
+                    T::u32::from_le_bytes([data[28], data[29], data[30], data[31]]),
+                    T::u32::from_le_bytes([data[32], data[33], data[34], data[35]]),
+                    T::u32::from_le_bytes([data[36], data[37], data[38], data[39]]),
+                    T::u32::from_le_bytes([data[40], data[41], data[42], data[43]]),
+                    T::u32::from_le_bytes([data[44], data[45], data[46], data[47]]),
+                    T::u32::from_le_bytes([data[48], data[49], data[50], data[51]]),
+                    T::u32::from_le_bytes([data[52], data[53], data[54], data[55]]),
+                    T::u32::from_le_bytes([data[56], data[57], data[58], data[59]]),
+                    T::u32::from_le_bytes([data[60], data[61], data[62], data[63]]),
+                ];
+                data = &data[BLOCK_LENGTH..];
+                self.state.update(block);
+            }
+            self.buffer.extend_from_slice(data);
+        } else {
+            self.buffer.extend_from_slice(data);
+            while self.buffer.len() >= BLOCK_LENGTH {
+                let data: [T::u8; 64] = self.buffer[..BLOCK_LENGTH].try_into().unwrap();
+                let block: [T::u32; 16] = [
+                    T::u32::from_le_bytes([data[ 0], data[ 1], data[ 2], data[ 3]]),
+                    T::u32::from_le_bytes([data[ 4], data[ 5], data[ 6], data[ 7]]),
+                    T::u32::from_le_bytes([data[ 8], data[ 9], data[10], data[11]]),
+                    T::u32::from_le_bytes([data[12], data[13], data[14], data[15]]),
+                    T::u32::from_le_bytes([data[16], data[17], data[18], data[19]]),
+                    T::u32::from_le_bytes([data[20], data[21], data[22], data[23]]),
+                    T::u32::from_le_bytes([data[24], data[25], data[26], data[27]]),
+                    T::u32::from_le_bytes([data[28], data[29], data[30], data[31]]),
+                    T::u32::from_le_bytes([data[32], data[33], data[34], data[35]]),
+                    T::u32::from_le_bytes([data[36], data[37], data[38], data[39]]),
+                    T::u32::from_le_bytes([data[40], data[41], data[42], data[43]]),
+                    T::u32::from_le_bytes([data[44], data[45], data[46], data[47]]),
+                    T::u32::from_le_bytes([data[48], data[49], data[50], data[51]]),
+                    T::u32::from_le_bytes([data[52], data[53], data[54], data[55]]),
+                    T::u32::from_le_bytes([data[56], data[57], data[58], data[59]]),
+                    T::u32::from_le_bytes([data[60], data[61], data[62], data[63]]),
+                ];
+                self.buffer = self.buffer.drain(BLOCK_LENGTH..).collect();
+                self.state.update(block);
+            }
+        }
     }
 }

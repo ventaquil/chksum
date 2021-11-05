@@ -8,6 +8,9 @@ The project follows to [Semantic Versioning](https://semver.org/spec/v2.0.0.html
 
 ## [Unreleased](https://github.com/ventaquil/chksum/compare/v0.1.0-rc0...)
 
+### Added
+- Added support for multiple versions and OSes in GitHub workflow.
+
 ### Changed
 - Changed GitHub workflow to use `actions-rs`.
 

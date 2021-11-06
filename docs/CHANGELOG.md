@@ -6,7 +6,7 @@ The format of this file is based on [Keep a Changelog](https://keepachangelog.co
 
 The project follows to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/ventaquil/chksum/compare/v0.1.0-rc0...)
+## [v0.1.0-rc1](https://github.com/ventaquil/chksum/compare/v0.1.0-rc0...v0.1.0-rc1)
 
 ### Added
 - Added support for multiple versions and OSes in GitHub workflow.

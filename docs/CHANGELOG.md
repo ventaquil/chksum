@@ -13,6 +13,7 @@ The project follows to [Semantic Versioning](https://semver.org/spec/v2.0.0.html
 
 ### Changed
 - Changed GitHub workflow to use `actions-rs`.
+- Splitted single-crate code into workspace with multiple crates.
 
 ## [v0.1.0-rc0](https://github.com/ventaquil/chksum/compare/v0.0.0...v0.1.0-rc0) - 2021-11-04
 

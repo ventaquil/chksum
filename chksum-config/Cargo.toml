@@ -1,0 +1,12 @@
+[package]
+name = "chksum-config"
+version = "0.1.0-rc1"
+authors = ["Konrad Goławski <konrad@golawski.it>"]
+edition = "2021"
+rust-version = "1.58.0"
+description = ""
+readme = ""
+repository = "https://github.com/ventaquil/chksum"
+license = "MIT"
+keywords = []
+categories = []

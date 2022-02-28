@@ -5,45 +5,61 @@
 [![crates.io](https://img.shields.io/crates/v/chksum?style=flat-square "crates.io")](https://crates.io/crates/chksum)
 [![LICENSE](https://img.shields.io/github/license/ventaquil/chksum?style=flat-square "LICENSE")](https://github.com/ventaquil/chksum/blob/master/LICENSE)
 
-For people who wants to make checksum of whole directory but doesn't like:
+For people who wants to make checksum of whole directory but doesn't like piping.
 
-    find /path -type f -exec md5sum \{\} + | sort -k1 | md5sum
+```
+$ find /path -type f -exec md5sum \{\} + | sort -k1 | md5sum
+```
 
-## Building
+## Running by a CLI
 
-Simply run `cargo build`.
+### Installation
 
-    cargo build [--release]
+```
+$ cargo install chksum-cli
+```
 
-You can use `make` command too.
+### Usage
 
-    make [DEBUG=1]
+```
+$ chksum-cli [options] [--] <path>...
+```
 
-## Installation
+Like
 
-Simply install using `make install` target.
+```
+$ chksum-cli LICENSE
+3b7c11a62208f03df96f7cfe215b1e28 LICENSE
+$ md5sum LICENSE
+3b7c11a62208f03df96f7cfe215b1e28  LICENSE
+$ chksum-cli --hash SHA1 docs/ extra/
+bc6f0730053530230d6a205309acb606d51130b7 docs/
+eb6d3cb291b58ebed93893848b3549264f01290b extra/
+$ find docs/ -type f | sort | xargs cat | sha1sum
+bc6f0730053530230d6a205309acb606d51130b7  -
+```
 
-    make install PREFIX='/usr'
+See [`chksum-cli/README.md`](chksum-cli/README.md) for more.
 
-**Note:** This may require root privileges.
+## Using as a library
 
-## Running
+See [`chksum/README.md`](chksum/README.md) for more.
 
-Usage:
+Enable `sync` feature during installation.
 
-    chksum [options] [--] <path>...
+```
+$ cargo install chksum[sync]
+```
 
-Like:
+```rust
+use chksum::arch::x1::Arch;
+use chksum::hash::md5;
+use chksum::prelude::*;
 
-    $ chksum LICENSE
-    256cc158ea3c7dd3efcee650b022b5a5 LICENSE
-    $ md5sum LICENSE
-    256cc158ea3c7dd3efcee650b022b5a5  LICENSE
-    $ chksum --hash SHA1 docs/ extra/
-    d6143fde775af08fc43329295a620408fbcdd72b docs/
-    3e1c845b152bf99431b4c709c95c1aa20d4735b6 extra/
-    $ find docs/ -type f -exec cat \{\} + | sha1sum
-    d6143fde775af08fc43329295a620408fbcdd72b  -
+let mut hash = md5::Hash::<Arch>::new();
+let digest = "path/to/file".chksum(&mut hash)?;
+println!("digest {:x}", digest);
+```
 
 ## Hash algorithms
 

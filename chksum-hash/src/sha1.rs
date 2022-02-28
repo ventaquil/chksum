@@ -134,6 +134,7 @@ const CONSTS: [u32; 4] = [0x5A827999, 0x6ED9EBA1, 0x8F1BBCDC, 0xCA62C1D6];
 const SHIFTS: [u32; 6] = [0x01, 0x1F, 0x05, 0x1B, 0x1E, 0x02];
 
 #[cfg(feature = "std")]
+#[rustfmt::skip]
 const PADDING: [u8; BLOCK_LENGTH_BYTES] = [
     0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -228,6 +229,7 @@ where
     #[allow(clippy::many_single_char_names)]
     #[cfg_attr(not(debug_assertions), inline(always))]
     #[must_use]
+    #[rustfmt::skip]
     pub fn from_raw(a: T, b: T, c: T, d: T, e: T) -> Self {
         Self {
             a, b, c, d, e,
@@ -266,6 +268,7 @@ where
         clippy::many_single_char_names,
     )]
     #[cfg_attr(nightly, optimize(speed))]
+    #[rustfmt::skip]
     pub fn update(&mut self, block: [T; BLOCK_LENGTH_DWORDS]) {
         let mut block = [
             block[0x0], block[0x1], block[0x2], block[0x3],
@@ -1180,6 +1183,7 @@ pub struct Digest<T>([T; DIGEST_LENGTH_BYTES]);
 #[cfg_attr(docsrs, doc(cfg(feature = "std")))]
 impl fmt::LowerHex for Digest<u8> {
     #[cfg_attr(not(debug_assertions), inline(always))]
+    #[rustfmt::skip]
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         let digest = format!(
             "{:02x}{:02x}{:02x}{:02x}\
@@ -1204,6 +1208,7 @@ impl fmt::LowerHex for Digest<u8> {
 #[cfg(feature = "std")]
 impl fmt::UpperHex for Digest<u8> {
     #[cfg_attr(not(debug_assertions), inline(always))]
+    #[rustfmt::skip]
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         let digest = format!(
             "{:02X}{:02X}{:02X}{:02X}\
@@ -1233,6 +1238,7 @@ where
 {
     #[allow(clippy::many_single_char_names)]
     #[cfg_attr(not(debug_assertions), inline(always))]
+    #[rustfmt::skip]
     fn from(digest: [U; DIGEST_LENGTH_DWORDS]) -> Self {
         let [a, b, c, d, e] = digest;
         let [a, b, c, d, e] = [
@@ -1334,6 +1340,7 @@ where
     /// ```
     #[cfg_attr(not(debug_assertions), inline(always))]
     #[must_use]
+    #[rustfmt::skip]
     pub fn new() -> Self {
         Self {
             state: State::new(),
@@ -1599,6 +1606,7 @@ impl<R: Copy, S: From<u32>, T: Arch<u8 = R, u32 = S>> super::Reset for Hash<T> {
 }
 
 #[cfg(test)]
+#[rustfmt::skip]
 mod tests {
     #[cfg(feature = "std")]
     use chksum_arch::x1::Arch;

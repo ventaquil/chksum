@@ -24,6 +24,7 @@ pub enum Error {
     #[error("Cannot read from `{path}`: {source}")]
     Read { path: PathBuf, source: io::Error },
     #[error(transparent)]
+    #[rustfmt::skip]
     Io { #[from] source: io::Error },
 }
 

@@ -1,3 +1,5 @@
+#![cfg_attr(nightly, feature(optimize_attribute))]
+
 use std::cmp::Reverse;
 use std::collections::VecDeque;
 use std::path::{Path, PathBuf};
@@ -81,6 +83,7 @@ pub trait AsyncChksum {
 
 #[async_trait]
 impl<P: AsRef<Path> + Send> AsyncChksum for P {
+    #[cfg_attr(nightly, optimize(speed))]
     async fn chksum_with_config<H, C>(&mut self, hash: &mut H, config: C) -> Result<H::Digest, Error>
     where
         H: Hash<u8> + Send,

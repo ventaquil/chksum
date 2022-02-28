@@ -115,7 +115,6 @@ const C: u32 = 0x98BADCFE;
 const D: u32 = 0x10325476;
 
 #[allow(clippy::unreadable_literal)]
-#[rustfmt::skip]
 const CONSTS: [u32; 64] = [
     0xD76AA478, 0xE8C7B756, 0x242070DB, 0xC1BDCEEE, 0xF57C0FAF, 0x4787C62A, 0xA8304613, 0xFD469501,
     0x698098D8, 0x8B44F7AF, 0xFFFF5BB1, 0x895CD7BE, 0x6B901122, 0xFD987193, 0xA679438E, 0x49B40821,
@@ -128,14 +127,12 @@ const CONSTS: [u32; 64] = [
 ];
 
 #[allow(clippy::unreadable_literal)]
-#[rustfmt::skip]
 const SHIFTS: [u8; 32] = [
     0x07, 0x19, 0x0C, 0x14, 0x11, 0x0F, 0x16, 0x0A, 0x05, 0x1B, 0x09, 0x17, 0x0E, 0x12, 0x14, 0x0C,
     0x04, 0x1C, 0x0B, 0x15, 0x10, 0x10, 0x17, 0x09, 0x06, 0x1A, 0x0A, 0x16, 0x0F, 0x11, 0x15, 0x0B,
 ];
 
 #[cfg(feature = "std")]
-#[rustfmt::skip]
 const PADDING: [u8; BLOCK_LENGTH_BYTES] = [
     0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -250,7 +247,6 @@ where
 
     #[cfg_attr(not(debug_assertions), inline(always))]
     #[must_use]
-    #[rustfmt::skip]
     pub fn from_raw(a: T, b: T, c: T, d: T) -> Self {
         Self {
             a, b, c, d,
@@ -297,6 +293,7 @@ where
     /// state.update(data);
     /// ```
     #[allow(clippy::items_after_statements, clippy::too_many_lines, clippy::shadow_unrelated)]
+    #[cfg_attr(nightly, optimize(speed))]
     pub fn update(&mut self, block: [T; BLOCK_LENGTH_DWORDS]) {
         let (a, b, c, d) = (self.a, self.b, self.c, self.d);
 
@@ -1115,7 +1112,6 @@ pub struct Digest<T>([T; DIGEST_LENGTH_BYTES]);
 #[cfg(feature = "std")]
 impl fmt::LowerHex for Digest<u8> {
     #[cfg_attr(not(debug_assertions), inline(always))]
-    #[rustfmt::skip]
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         let digest = format!(
             "{:02x}{:02x}{:02x}{:02x}\
@@ -1138,7 +1134,6 @@ impl fmt::LowerHex for Digest<u8> {
 #[cfg(feature = "std")]
 impl fmt::UpperHex for Digest<u8> {
     #[cfg_attr(not(debug_assertions), inline(always))]
-    #[rustfmt::skip]
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         let digest = format!(
             "{:02X}{:02X}{:02X}{:02X}\
@@ -1255,7 +1250,6 @@ where
     /// ```
     #[cfg_attr(not(debug_assertions), inline(always))]
     #[must_use]
-    #[rustfmt::skip]
     pub fn new() -> Self {
         Self {
             state: State::new(),
@@ -1318,6 +1312,7 @@ where
     /// let data = "string";
     /// hash.update(data);
     /// ```
+    #[cfg_attr(nightly, optimize(speed))]
     pub fn update<D: AsRef<[T::u8]>>(&mut self, data: D) {
         let data = data.as_ref();
         self.counter = self.counter.wrapping_add(data.len());
@@ -1403,6 +1398,7 @@ where
     /// let digest = Digest::try_from("D41D8CD98F00B204E9800998ECF8427E").unwrap();
     /// assert_eq!(hash.digest(), digest);
     /// ```
+    #[cfg_attr(nightly, optimize(speed))]
     pub fn digest(&self) -> Digest<T::u8> {
         let mut state = self.state;
         if self.buffer.is_empty() {
@@ -1536,7 +1532,6 @@ where
 }
 
 #[cfg(test)]
-#[rustfmt::skip]
 mod tests {
     #[cfg(feature = "std")]
     use chksum_arch::x1::Arch;

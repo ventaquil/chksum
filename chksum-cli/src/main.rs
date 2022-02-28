@@ -1,3 +1,5 @@
+#![cfg_attr(nightly, feature(no_coverage))]
+
 mod command;
 mod parse;
 
@@ -35,6 +37,7 @@ macro_rules! chksums_with_config {
     };
 }
 
+#[cfg_attr(nightly, no_coverage)]
 fn main() -> Result<()> {
     let command = command::create();
 

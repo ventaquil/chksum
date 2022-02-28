@@ -265,6 +265,7 @@ where
         clippy::shadow_unrelated,
         clippy::many_single_char_names,
     )]
+    #[cfg_attr(nightly, optimize(speed))]
     pub fn update(&mut self, block: [T; BLOCK_LENGTH_DWORDS]) {
         let mut block = [
             block[0x0], block[0x1], block[0x2], block[0x3],
@@ -1395,6 +1396,7 @@ where
     /// let data = "string";
     /// hash.update(data);
     /// ```
+    #[cfg_attr(nightly, optimize(speed))]
     pub fn update<D: AsRef<[T::u8]>>(&mut self, data: D) {
         let data = data.as_ref();
         self.counter = self.counter.wrapping_add(data.len());
@@ -1480,6 +1482,7 @@ where
     /// let digest = Digest::try_from("DA39A3EE5E6B4B0D3255BFEF95601890AFD80709").unwrap();
     /// assert_eq!(hash.digest(), digest);
     /// ```
+    #[cfg_attr(nightly, optimize(speed))]
     pub fn digest(&self) -> Digest<T::u8> {
         let mut state = self.state;
         if self.buffer.is_empty() {

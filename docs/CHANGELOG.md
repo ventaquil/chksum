@@ -11,6 +11,8 @@ The project follows to [Semantic Versioning](https://semver.org/spec/v2.0.0.html
 ### Added
 - Added support for multiple versions and OSes in GitHub workflow.
 - Added support for async and parallel computations with Tokio available by `chksum-async` crate.
+- Added build script which allows to distingush between stable and nightly build.
+- Added optimizations for nightly build (by applying `optimize(speed)`).
 
 ### Changed
 - Changed GitHub workflow to use `actions-rs`.

@@ -1,4 +1,5 @@
 #![cfg_attr(docsrs, feature(doc_cfg))]
+#![cfg_attr(nightly, feature(optimize_attribute))]
 #![cfg_attr(not(feature = "std"), no_std)]
 
 pub mod md5;

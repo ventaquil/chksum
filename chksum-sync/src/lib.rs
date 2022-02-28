@@ -1,3 +1,5 @@
+#![cfg_attr(nightly, feature(optimize_attribute))]
+
 use std::cmp::Reverse;
 use std::collections::VecDeque;
 use std::fs::{self, File};
@@ -75,6 +77,7 @@ pub trait Chksum {
 }
 
 impl<P: AsRef<Path>> Chksum for P {
+    #[cfg_attr(nightly, optimize(speed))]
     fn chksum_with_config<H, C>(&mut self, hash: &mut H, config: C) -> Result<H::Digest, Error>
     where
         H: Hash<u8>,

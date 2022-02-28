@@ -2,6 +2,7 @@
 members = [
     "chksum",
     "chksum-arch",
+    "chksum-async",
     "chksum-cli",
     "chksum-config",
     "chksum-hash",

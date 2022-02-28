@@ -10,6 +10,7 @@ The project follows to [Semantic Versioning](https://semver.org/spec/v2.0.0.html
 
 ### Added
 - Added support for multiple versions and OSes in GitHub workflow.
+- Added support for async and parallel computations with Tokio available by `chksum-async` crate.
 
 ### Changed
 - Changed GitHub workflow to use `actions-rs`.

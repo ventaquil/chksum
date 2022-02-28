@@ -45,6 +45,8 @@ See [`chksum-cli/README.md`](chksum-cli/README.md) for more.
 
 See [`chksum/README.md`](chksum/README.md) for more.
 
+### Synchronous
+
 Enable `sync` feature during installation.
 
 ```
@@ -58,6 +60,24 @@ use chksum::prelude::*;
 
 let mut hash = md5::Hash::<Arch>::new();
 let digest = "path/to/file".chksum(&mut hash)?;
+println!("digest {:x}", digest);
+```
+
+### Asynchronous
+
+Enable `async` feature during installation.
+
+```
+$ cargo install chksum[async]
+```
+
+```rust
+use chksum::arch::x1::Arch;
+use chksum::hash::md5;
+use chksum::prelude::*;
+
+let mut hash = md5::Hash::<Arch>::new();
+let digest = "path/to/file".chksum(&mut hash).await?;
 println!("digest {:x}", digest);
 ```
 

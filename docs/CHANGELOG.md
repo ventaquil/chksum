@@ -14,6 +14,7 @@ The project follows to [Semantic Versioning](https://semver.org/spec/v2.0.0.html
 - Added build script which allows to distingush between stable and nightly build.
 - Added optimizations for nightly build (by applying `optimize(speed)`).
 - Added rustfmt configuration and macros.
+- Added basic C-like interface available by `chksum-ffi` crate.
 
 ### Changed
 - Changed GitHub workflow to use `actions-rs`.

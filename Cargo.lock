@@ -128,6 +128,13 @@ name = "chksum-config"
 version = "0.1.0-rc1"
 
 [[package]]
+name = "chksum-ffi"
+version = "0.1.0-rc1"
+dependencies = [
+ "chksum",
+]
+
+[[package]]
 name = "chksum-hash"
 version = "0.1.0-rc1"
 dependencies = [

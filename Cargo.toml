@@ -5,6 +5,7 @@ members = [
     "chksum-async",
     "chksum-cli",
     "chksum-config",
+    "chksum-ffi",
     "chksum-hash",
     "chksum-sync",
     "chksum-traits",

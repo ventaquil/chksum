@@ -3,7 +3,7 @@ use clap::{arg, command, Command};
 use super::parse;
 
 pub fn create() -> Command<'static> {
-    command!("chksum").args([
+    command!("chksum").author("").args([
         arg!(paths: <PATH> "Path to file or directory").multiple_values(true),
         arg!(-H --hash <HASH> "Choose hashing algorithm")
             .required(false)

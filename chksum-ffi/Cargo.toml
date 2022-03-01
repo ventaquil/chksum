@@ -12,7 +12,7 @@ keywords = ["checksum", "directory-checksum", "ffi", "file-checksum", "hash"]
 categories = ["algorithms", "cryptography", "filesystem"]
 
 [dependencies]
-chksum = { path = "../chksum", default-features = false }
+chksum = { path = "../chksum", version = "^0.1.0-rc1", default-features = false }
 
 [lib]
 crate-type = ["cdylib"]

@@ -12,12 +12,12 @@ keywords = ["checksum", "directory-checksum", "file-checksum", "hash"]
 categories = ["algorithms", "cryptography", "filesystem"]
 
 [dependencies]
-chksum-arch = { path = "../chksum-arch", default-features = false }
-chksum-async = { path = "../chksum-async", default-features = false, optional = true }
-chksum-config = { path = "../chksum-config", default-features = false }
-chksum-hash = { path = "../chksum-hash", default-features = false, features = ["std"] }
-chksum-sync = { path = "../chksum-sync", default-features = false, optional = true }
-chksum-traits = { path = "../chksum-traits", default-features = false, features = ["std"] }
+chksum-arch = { path = "../chksum-arch", version = "^0.1.0-rc1", default-features = false }
+chksum-async = { path = "../chksum-async", version = "^0.1.0-rc1", default-features = false, optional = true }
+chksum-config = { path = "../chksum-config", version = "^0.1.0-rc1", default-features = false }
+chksum-hash = { path = "../chksum-hash", version = "^0.1.0-rc1", default-features = false, features = ["std"] }
+chksum-sync = { path = "../chksum-sync", version = "^0.1.0-rc1", default-features = false, optional = true }
+chksum-traits = { path = "../chksum-traits", version = "^0.1.0-rc1", default-features = false, features = ["std"] }
 
 [features]
 default = []

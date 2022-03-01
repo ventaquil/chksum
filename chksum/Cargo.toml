@@ -11,6 +11,9 @@ license = "MIT"
 keywords = ["checksum", "directory-checksum", "file-checksum", "hash"]
 categories = ["algorithms", "cryptography", "filesystem"]
 
+[package.metadata.docs.rs]
+rustc-args = ["--cfg", "docsrs"]
+
 [dependencies]
 chksum-arch = { path = "../chksum-arch", version = "^0.1.0-rc1", default-features = false }
 chksum-async = { path = "../chksum-async", version = "^0.1.0-rc1", default-features = false, optional = true }

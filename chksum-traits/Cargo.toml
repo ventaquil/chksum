@@ -10,6 +10,9 @@ license = "MIT"
 keywords = []
 categories = []
 
+[package.metadata.docs.rs]
+rustc-args = ["--cfg", "docsrs"]
+
 [features]
 default = ["std"]
 std = []

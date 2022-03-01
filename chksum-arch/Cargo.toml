@@ -10,6 +10,9 @@ license = "MIT"
 keywords = ["parallel-processing", "simd"]
 categories = ["hardware-support"]
 
+[package.metadata.docs.rs]
+rustc-args = ["--cfg", "docsrs"]
+
 [dependencies]
 chksum-traits = { path = "../chksum-traits", version = "^0.1.0-rc1", default-features = false, features = ["std"] }
 

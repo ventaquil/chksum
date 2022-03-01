@@ -10,6 +10,9 @@ license = "MIT"
 keywords = ["checksum", "hash"]
 categories = ["algorithms", "cryptography"]
 
+[package.metadata.docs.rs]
+rustc-args = ["--cfg", "docsrs"]
+
 [dependencies]
 chksum-arch = { path = "../chksum-arch", version = "^0.1.0-rc1", default-features = false, optional = true }
 chksum-traits = { path = "../chksum-traits", version = "^0.1.0-rc1", default-features = false }

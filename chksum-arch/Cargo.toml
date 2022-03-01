@@ -1,6 +1,6 @@
 [package]
 name = "chksum-arch"
-version = "0.1.0-rc1"
+version = "0.1.0-rc2"
 authors = ["Konrad Goławski <konrad@golawski.it>"]
 edition = "2021"
 rust-version = "1.58.0"
@@ -14,7 +14,7 @@ categories = ["hardware-support"]
 rustc-args = ["--cfg", "docsrs"]
 
 [dependencies]
-chksum-traits = { path = "../chksum-traits", version = "^0.1.0-rc1", default-features = false, features = ["std"] }
+chksum-traits = { path = "../chksum-traits", version = "^0.1.0-rc2", default-features = false, features = ["std"] }
 
 [features]
 default = []

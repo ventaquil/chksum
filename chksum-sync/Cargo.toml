@@ -1,6 +1,6 @@
 [package]
 name = "chksum-sync"
-version = "0.1.0-rc1"
+version = "0.1.0-rc2"
 authors = ["Konrad Goławski <konrad@golawski.it>"]
 edition = "2021"
 rust-version = "1.58.0"
@@ -11,8 +11,8 @@ keywords = ["checksum", "directory-checksum", "file-checksum", "hash"]
 categories = ["algorithms", "cryptography", "filesystem"]
 
 [dependencies]
-chksum-config = { path = "../chksum-config", version = "^0.1.0-rc1", default-features = false }
-chksum-hash = { path = "../chksum-hash", version = "^0.1.0-rc1", default-features = false, features = ["std"] }
+chksum-config = { path = "../chksum-config", version = "^0.1.0-rc2", default-features = false }
+chksum-hash = { path = "../chksum-hash", version = "^0.1.0-rc2", default-features = false, features = ["std"] }
 thiserror = "^1.0"
 
 [dev-dependencies]

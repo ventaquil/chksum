@@ -1,6 +1,6 @@
 [package]
 name = "chksum-cli"
-version = "0.1.0-rc1"
+version = "0.1.0-rc2"
 authors = ["Konrad Goławski <konrad@golawski.it>"]
 edition = "2021"
 rust-version = "1.58.0"
@@ -13,6 +13,6 @@ categories = ["command-line-utilities", "cryptography", "filesystem"]
 
 [dependencies]
 anyhow = "^1.0"
-chksum = { path = "../chksum", version = "^0.1.0-rc1", default-features = false, features = ["sync"] }
+chksum = { path = "../chksum", version = "^0.1.0-rc2", default-features = false, features = ["sync"] }
 clap = { version = "^3.0", features = ["cargo", "wrap_help"] }
 thiserror = "^1.0"

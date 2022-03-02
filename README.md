@@ -53,6 +53,8 @@ Enable `sync` feature during installation.
 $ cargo install chksum[sync]
 ```
 
+Code example.
+
 ```rust
 use chksum::arch::x1::Arch;
 use chksum::hash::md5;
@@ -70,6 +72,8 @@ Enable `async` feature during installation.
 ```
 $ cargo install chksum[async]
 ```
+
+Code example.
 
 ```rust
 use chksum::arch::x1::Arch;

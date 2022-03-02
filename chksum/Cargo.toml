@@ -1,6 +1,6 @@
 [package]
 name = "chksum"
-version = "0.1.0-rc2"
+version = "0.1.0-rc3"
 authors = ["Konrad Goławski <konrad@golawski.it>"]
 edition = "2021"
 rust-version = "1.58.0"
@@ -16,12 +16,12 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
-chksum-arch = { path = "../chksum-arch", version = "^0.1.0-rc2", default-features = false }
-chksum-async = { path = "../chksum-async", version = "^0.1.0-rc2", default-features = false, optional = true }
-chksum-config = { path = "../chksum-config", version = "^0.1.0-rc2", default-features = false }
-chksum-hash = { path = "../chksum-hash", version = "^0.1.0-rc2", default-features = false, features = ["std"] }
-chksum-sync = { path = "../chksum-sync", version = "^0.1.0-rc2", default-features = false, optional = true }
-chksum-traits = { path = "../chksum-traits", version = "^0.1.0-rc2", default-features = false, features = ["std"] }
+chksum-arch = { path = "../chksum-arch", version = "^0.1.0-rc3", default-features = false }
+chksum-async = { path = "../chksum-async", version = "^0.1.0-rc3", default-features = false, optional = true }
+chksum-config = { path = "../chksum-config", version = "^0.1.0-rc3", default-features = false }
+chksum-hash = { path = "../chksum-hash", version = "^0.1.0-rc3", default-features = false, features = ["std"] }
+chksum-sync = { path = "../chksum-sync", version = "^0.1.0-rc3", default-features = false, optional = true }
+chksum-traits = { path = "../chksum-traits", version = "^0.1.0-rc3", default-features = false, features = ["std"] }
 
 [features]
 default = []

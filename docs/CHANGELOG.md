@@ -6,6 +6,12 @@ The format of this file is based on [Keep a Changelog](https://keepachangelog.co
 
 The project follows to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.1.0-rc3](https://github.com/ventaquil/chksum/compare/v0.1.0-rc2...v0.1.0-rc3)
+
+### Fixed
+- Fixed wrong rustdoc args in Cargo configs.
+- Fixed improper getting channel from toolchain in build scripts.
+
 ## [v0.1.0-rc2](https://github.com/ventaquil/chksum/compare/v0.1.0-rc1...v0.1.0-rc2)
 
 ### Added

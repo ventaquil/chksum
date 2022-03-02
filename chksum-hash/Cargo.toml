@@ -11,7 +11,8 @@ keywords = ["checksum", "hash"]
 categories = ["algorithms", "cryptography"]
 
 [package.metadata.docs.rs]
-rustc-args = ["--cfg", "docsrs"]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
 chksum-arch = { path = "../chksum-arch", version = "^0.1.0-rc2", default-features = false, optional = true }

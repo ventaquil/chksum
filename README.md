@@ -1,6 +1,6 @@
 # chksum
 
-[![Build](https://img.shields.io/github/workflow/status/ventaquil/chksum/ci?style=flat-square "Build")](https://github.com/ventaquil/chksum/actions/workflows/ci.yml)
+[![Build](https://img.shields.io/github/workflow/status/ventaquil/chksum/Continuous%20Integration?style=flat-square "Build")](https://github.com/ventaquil/chksum/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/ventaquil/chksum?include_prereleases&sort=semver&style=flat-square "Release")](https://github.com/ventaquil/chksum/releases)
 [![LICENSE](https://img.shields.io/github/license/ventaquil/chksum?style=flat-square "LICENSE")](https://github.com/ventaquil/chksum/blob/master/LICENSE)
 

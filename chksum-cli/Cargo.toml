@@ -1,18 +1,23 @@
 [package]
 name = "chksum-cli"
-version = "0.1.0-rc3"
+version = "0.1.0-rc4"
 authors = ["Konrad Goławski <konrad@golawski.it>"]
 edition = "2021"
 rust-version = "1.58.0"
-description = "Easy way to make checksum of single file or whole directory."
+description = "Simple checksum calculator."
 readme = "README.md"
 repository = "https://github.com/ventaquil/chksum"
 license = "MIT"
 keywords = ["checksum", "directory-checksum", "file-checksum", "hash"]
 categories = ["command-line-utilities", "cryptography", "filesystem"]
 
+[package.metadata.docs.rs]
+all-features = true
+
 [dependencies]
-anyhow = "^1.0"
-chksum = { path = "../chksum", version = "^0.1.0-rc3", default-features = false, features = ["sync"] }
-clap = { version = "^3.0", features = ["cargo", "wrap_help"] }
-thiserror = "^1.0"
+anyhow = "1.0.58"
+chksum = { path = "../chksum", version = "0.1.0-rc4" }
+clap = { version = "3.2.14", features = ["cargo", "wrap_help"] }
+itertools = "0.10.3"
+rayon = "1.5.3"
+thiserror = "1.0.31"

@@ -5,14 +5,30 @@
 
 ## Installation
 
-```
-$ cargo install chksum-cli
+```shell
+cargo install chksum-cli
 ```
 
 ## Options
 
-|        Flags        |            Description            |      Allowed values     |
-|:-------------------:|-----------------------------------|:-----------------------:|
-|    `-H`/`--hash`    | Choose hashing algorithm          | `MD5`<br>`SHA1`/`SHA-1` |
-| `-P`/`--with-paths` | Use paths to calculate digest     |    *Flag only option*   |
-| `-s`/`--chunk-size` | Set chunk size of processing data |     positive integer    |
+```text
+chksum-cli 0.1.0-rc4
+
+Simple checksum calculator.
+
+USAGE:
+    chksum-cli [OPTIONS] <PATH>...
+
+ARGS:
+    <PATH>...    Path to file or directory
+
+OPTIONS:
+    -h, --help                 Print help information
+    -H, --hash <HASH>          Choose hashing algorithm
+    -s, --chunk-size <SIZE>    Set chunk size of processing data
+    -V, --version              Print version information
+
+Implemented hash algorithms:
+ - MD5,
+ - SHA-1.
+```

@@ -176,7 +176,11 @@ jobs:
       - deny
       - lint
     runs-on: ubuntu-latest
-    name: "Coverage"
+    strategy:
+      fail-fast: false
+      matrix:
+        package: [chksum, chksum-cli]
+    name: "Coverage (Package: ${{ matrix.package }})"
     steps:
       - name: Repository checkout
         uses: actions/checkout@v3
@@ -191,10 +195,10 @@ jobs:
         with:
           crate: cargo-tarpaulin
       - name: Run cargo tarpaulin
-        run: cargo tarpaulin --all-features --fail-under 50 --ignore-tests --out xml --timeout 120 --workspace
+        run: cargo tarpaulin --all-features --all-targets --exclude-files '../*' --fail-under 50 --ignore-tests --out xml --root ${{ matrix.package }} --timeout 120
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+          flags: ${{ matrix.package }}
           fail_ci_if_error: true
-          verbose: true

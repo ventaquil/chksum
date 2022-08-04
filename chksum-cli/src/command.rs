@@ -34,18 +34,39 @@ mod tests {
 
     #[test]
     fn test_command_chunk_size() {
-        assert!(matches!(create().try_get_matches_from(["chksum-cli", "-s", "64", "path"]), Ok(_)));
-        assert!(matches!(create().try_get_matches_from(["chksum-cli", "-s", "128K", "path"]), Ok(_)));
-        assert!(matches!(create().try_get_matches_from(["chksum-cli", "-s", "-8", "path"]), Err(_)));
-        assert!(matches!(create().try_get_matches_from(["chksum-cli", "-s", "x", "path"]), Err(_)));
+        assert!(matches!(
+            create().try_get_matches_from(["chksum-cli", "-s", "64", "path"]),
+            Ok(_)
+        ));
+        assert!(matches!(
+            create().try_get_matches_from(["chksum-cli", "-s", "128K", "path"]),
+            Ok(_)
+        ));
+        assert!(matches!(
+            create().try_get_matches_from(["chksum-cli", "-s", "-8", "path"]),
+            Err(_)
+        ));
+        assert!(matches!(
+            create().try_get_matches_from(["chksum-cli", "-s", "x", "path"]),
+            Err(_)
+        ));
         // todo add more precise tests
     }
 
     #[test]
     fn test_command_hash() {
-        assert!(matches!(create().try_get_matches_from(["chksum-cli", "-H", "MD5", "path"]), Ok(_)));
-        assert!(matches!(create().try_get_matches_from(["chksum-cli", "-H", "md5", "path"]), Err(_)));
-        assert!(matches!(create().try_get_matches_from(["chksum-cli", "-H", "invalid", "path"]), Err(_)));
+        assert!(matches!(
+            create().try_get_matches_from(["chksum-cli", "-H", "MD5", "path"]),
+            Ok(_)
+        ));
+        assert!(matches!(
+            create().try_get_matches_from(["chksum-cli", "-H", "md5", "path"]),
+            Err(_)
+        ));
+        assert!(matches!(
+            create().try_get_matches_from(["chksum-cli", "-H", "invalid", "path"]),
+            Err(_)
+        ));
         // todo add more precise tests
     }
 

@@ -14,10 +14,10 @@ on:
     paths:
       - ".github/workflows/*.yml"
       - "Cargo.lock"
-      - "**/Cargo.toml"
-      - "**/build.rs"
-      - src/**.rs
-      - tests/**.rs
+      - "*/Cargo.toml"
+      - "*/build.rs"
+      - "*/src/**.rs"
+      - "*/tests/**.rs"
   pull_request:
     branches:
       - master
@@ -25,10 +25,10 @@ on:
     paths:
       - ".github/workflows/*.yml"
       - "Cargo.lock"
-      - "**/Cargo.toml"
-      - "**/build.rs"
-      - src/**.rs
-      - tests/**.rs
+      - "*/Cargo.toml"
+      - "*/build.rs"
+      - "*/src/**.rs"
+      - "*/tests/**.rs"
 
 jobs:
   lint:

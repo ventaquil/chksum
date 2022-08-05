@@ -21,3 +21,7 @@ clap = { version = "3.2.14", features = ["cargo", "wrap_help"] }
 itertools = "0.10.3"
 rayon = "1.5.3"
 thiserror = "1.0.31"
+
+[dev-dependencies]
+assert_cmd = { version = "2.0.4", features = ["color-auto"] }
+assert_fs = { version = "1.0.7", features = ["color-auto"] }

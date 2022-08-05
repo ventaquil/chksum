@@ -176,6 +176,34 @@ jobs:
       - deny
       - lint
     runs-on: ubuntu-latest
+    name: Coverage
+    steps:
+      - name: Repository checkout
+        uses: actions/checkout@v3
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          default: true
+          profile: minimal
+      - name: Install cargo tarpaulin
+        uses: actions-rs/install@v0.1
+        with:
+          crate: cargo-tarpaulin
+      - name: Run cargo tarpaulin
+        run: cargo tarpaulin --all-features --all-targets --fail-under 50 --follow-exec --ignore-tests --out xml --timeout 120
+      - name: Upload to codecov.io
+        if: ${{ always() }}
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
+
+  coverage-per-package:
+    needs:
+      - deny
+      - lint
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:

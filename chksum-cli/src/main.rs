@@ -1,5 +1,3 @@
-#![cfg_attr(nightly, feature(no_coverage))]
-
 mod command;
 mod parse;
 
@@ -32,7 +30,6 @@ where
 }
 
 /// Main function.
-#[cfg_attr(nightly, no_coverage)]
 fn main() -> Result<()> {
     let command = command::create();
 

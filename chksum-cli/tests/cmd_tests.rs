@@ -60,6 +60,19 @@ fn test_existing_file() -> Result {
 }
 
 #[test]
+fn test_existing_directory() -> Result {
+    // todo add more precise checks
+
+    let directory = TempDir::new()?;
+
+    Command::cargo_bin("chksum-cli")?.arg(directory.as_ref()).assert().success();
+
+    directory.close()?;
+
+    Ok(())
+}
+
+#[test]
 fn test_stdin() -> Result {
     // todo add more precise checks
 

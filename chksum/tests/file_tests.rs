@@ -4,13 +4,13 @@ use chksum::prelude::*;
 use tempfile::tempfile;
 
 mod common;
-use common::{data_with_size, Size};
+use common::{data_with_size, Result, Size};
 
 mod md5 {
     use super::*;
 
     #[test]
-    fn empty_file() -> Result<()> {
+    fn empty_file() -> Result {
         let data = data_with_size(Size::Empty as usize);
         let mut file = {
             let mut file = tempfile()?;
@@ -25,7 +25,7 @@ mod md5 {
     }
 
     #[test]
-    fn tiny_file() -> Result<()> {
+    fn tiny_file() -> Result {
         let data = data_with_size(Size::Tiny as usize);
         let mut file = {
             let mut file = tempfile()?;
@@ -40,7 +40,7 @@ mod md5 {
     }
 
     #[test]
-    fn small_file() -> Result<()> {
+    fn small_file() -> Result {
         let data = data_with_size(Size::Small as usize);
         let mut file = {
             let mut file = tempfile()?;
@@ -55,7 +55,7 @@ mod md5 {
     }
 
     #[test]
-    fn medium_file() -> Result<()> {
+    fn medium_file() -> Result {
         let data = data_with_size(Size::Medium as usize);
         let mut file = {
             let mut file = tempfile()?;
@@ -70,7 +70,7 @@ mod md5 {
     }
 
     #[test]
-    fn big_file() -> Result<()> {
+    fn big_file() -> Result {
         let data = data_with_size(Size::Big as usize);
         let mut file = {
             let mut file = tempfile()?;
@@ -85,7 +85,7 @@ mod md5 {
     }
 
     #[test]
-    fn huge_file() -> Result<()> {
+    fn huge_file() -> Result {
         let data = data_with_size(Size::Huge as usize);
         let mut file = {
             let mut file = tempfile()?;
@@ -104,7 +104,7 @@ mod sha1 {
     use super::*;
 
     #[test]
-    fn empty_file() -> Result<()> {
+    fn empty_file() -> Result {
         let data = data_with_size(Size::Empty as usize);
         let mut file = {
             let mut file = tempfile()?;
@@ -119,7 +119,7 @@ mod sha1 {
     }
 
     #[test]
-    fn tiny_file() -> Result<()> {
+    fn tiny_file() -> Result {
         let data = data_with_size(Size::Tiny as usize);
         let mut file = {
             let mut file = tempfile()?;
@@ -134,7 +134,7 @@ mod sha1 {
     }
 
     #[test]
-    fn small_file() -> Result<()> {
+    fn small_file() -> Result {
         let data = data_with_size(Size::Small as usize);
         let mut file = {
             let mut file = tempfile()?;
@@ -149,7 +149,7 @@ mod sha1 {
     }
 
     #[test]
-    fn medium_file() -> Result<()> {
+    fn medium_file() -> Result {
         let data = data_with_size(Size::Medium as usize);
         let mut file = {
             let mut file = tempfile()?;
@@ -164,7 +164,7 @@ mod sha1 {
     }
 
     #[test]
-    fn big_file() -> Result<()> {
+    fn big_file() -> Result {
         let data = data_with_size(Size::Big as usize);
         let mut file = {
             let mut file = tempfile()?;
@@ -179,7 +179,7 @@ mod sha1 {
     }
 
     #[test]
-    fn huge_file() -> Result<()> {
+    fn huge_file() -> Result {
         let data = data_with_size(Size::Huge as usize);
         let mut file = {
             let mut file = tempfile()?;

@@ -65,7 +65,10 @@ fn test_existing_directory() -> Result {
 
     let directory = TempDir::new()?;
 
-    Command::cargo_bin("chksum-cli")?.arg(directory.as_ref()).assert().success();
+    Command::cargo_bin("chksum-cli")?
+        .arg(directory.as_ref())
+        .assert()
+        .success();
 
     directory.close()?;
 

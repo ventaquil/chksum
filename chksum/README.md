@@ -1,5 +1,6 @@
 # chksum
 
+[![Build](https://img.shields.io/github/workflow/status/ventaquil/chksum/Continuous%20Integration?style=flat-square "Build")](https://github.com/ventaquil/chksum/actions/workflows/ci.yml)
 [![Coverage](https://img.shields.io/codecov/c/gh/ventaquil/chksum?style=flat-square&flag=chksum "Coverage")](https://app.codecov.io/gh/ventaquil/chksum/tree/master/chksum)
 [![crates.io](https://img.shields.io/crates/v/chksum?style=flat-square "crates.io")](https://crates.io/crates/chksum)
 [![docs.rs](https://img.shields.io/docsrs/chksum?style=flat-square "docs.rs")](https://docs.rs/chksum)

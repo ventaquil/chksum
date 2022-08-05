@@ -1,5 +1,6 @@
 # chksum-cli
 
+[![Build](https://img.shields.io/github/workflow/status/ventaquil/chksum/Continuous%20Integration?style=flat-square "Build")](https://github.com/ventaquil/chksum/actions/workflows/ci.yml)
 [![Coverage](https://img.shields.io/codecov/c/gh/ventaquil/chksum?style=flat-square&flag=chksum-cli "Coverage")](https://app.codecov.io/gh/ventaquil/chksum/tree/master/chksum-cli)
 [![crates.io](https://img.shields.io/crates/v/chksum-cli?style=flat-square "crates.io")](https://crates.io/crates/chksum-cli)
 [![LICENSE](https://img.shields.io/github/license/ventaquil/chksum?style=flat-square "LICENSE")](https://github.com/ventaquil/chksum/blob/master/LICENSE)

@@ -182,20 +182,11 @@ pub enum Error {
     #[error("Chunk size cannot be equal to zero")]
     ZeroChunkSize,
     #[error(transparent)]
-    FromUtf8 {
-        #[from]
-        source: FromUtf8Error,
-    },
+    FromUtf8(#[from] FromUtf8Error),
     #[error(transparent)]
-    Io {
-        #[from]
-        source: io::Error,
-    },
+    Io(#[from] io::Error),
     #[error(transparent)]
-    Utf8 {
-        #[from]
-        source: Utf8Error,
-    },
+    Utf8(#[from] Utf8Error),
 }
 
 pub type Result<T> = result::Result<T, Error>;

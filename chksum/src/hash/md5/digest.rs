@@ -1,7 +1,7 @@
 use std::fmt::{self, Formatter, LowerHex, UpperHex};
 
-use super::super::DigestError;
 use super::State;
+use crate::hash::DigestError;
 
 pub(super) const DIGEST_LENGTH_BITS: usize = 128;
 pub(super) const DIGEST_LENGTH_BYTES: usize = DIGEST_LENGTH_BITS / 8;

@@ -368,7 +368,7 @@ impl Default for State {
 
 #[cfg(test)]
 mod tests {
-    use super::State;
+    use super::*;
 
     #[test]
     fn state_new() {

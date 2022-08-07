@@ -76,7 +76,7 @@ pub(super) fn pad(block: Block, counter: usize) -> Padding {
 
 #[cfg(test)]
 mod tests {
-    use super::{pad, Padding};
+    use super::*;
 
     #[test]
     fn test_empty() {

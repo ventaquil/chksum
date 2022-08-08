@@ -68,15 +68,15 @@ mod tests {
         );
         assert!(
             matches!(hash("md5"), Err(Error::HashAlgorithmUnknown)),
-            "string is not a valid SHA-1 name!"
+            "string is not a valid MD5 name!"
         );
         assert!(
             matches!(hash("Md5"), Err(Error::HashAlgorithmUnknown)),
-            "string is not a valid SHA-1 name!"
+            "string is not a valid MD5 name!"
         );
         assert!(
             matches!(hash("MD 5"), Err(Error::HashAlgorithmUnknown)),
-            "string is not a valid SHA-1 name!"
+            "string is not a valid MD5 name!"
         );
     }
 

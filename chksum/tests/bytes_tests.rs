@@ -7,7 +7,7 @@ mod md5 {
     use super::*;
 
     #[test]
-    fn empty_str() -> Result {
+    fn empty_bytes() -> Result {
         let data = data_with_size(Size::Empty as usize);
         let mut bytes: &[u8] = &data;
         let digest = bytes.chksum(HashAlgorithm::MD5)?;
@@ -17,7 +17,7 @@ mod md5 {
     }
 
     #[test]
-    fn tiny_str() -> Result {
+    fn tiny_bytes() -> Result {
         let data = data_with_size(Size::Tiny as usize);
         let mut bytes: &[u8] = &data;
         let digest = bytes.chksum(HashAlgorithm::MD5)?;
@@ -27,7 +27,7 @@ mod md5 {
     }
 
     #[test]
-    fn small_str() -> Result {
+    fn small_bytes() -> Result {
         let data = data_with_size(Size::Small as usize);
         let mut bytes: &[u8] = &data;
         let digest = bytes.chksum(HashAlgorithm::MD5)?;
@@ -37,7 +37,7 @@ mod md5 {
     }
 
     #[test]
-    fn medium_str() -> Result {
+    fn medium_bytes() -> Result {
         let data = data_with_size(Size::Medium as usize);
         let mut bytes: &[u8] = &data;
         let digest = bytes.chksum(HashAlgorithm::MD5)?;
@@ -47,7 +47,7 @@ mod md5 {
     }
 
     #[test]
-    fn big_str() -> Result {
+    fn big_bytes() -> Result {
         let data = data_with_size(Size::Big as usize);
         let mut bytes: &[u8] = &data;
         let digest = bytes.chksum(HashAlgorithm::MD5)?;
@@ -57,7 +57,7 @@ mod md5 {
     }
 
     #[test]
-    fn huge_str() -> Result {
+    fn huge_bytes() -> Result {
         let data = data_with_size(Size::Huge as usize);
         let mut bytes: &[u8] = &data;
         let digest = bytes.chksum(HashAlgorithm::MD5)?;
@@ -71,7 +71,7 @@ mod sha1 {
     use super::*;
 
     #[test]
-    fn empty_str() -> Result {
+    fn empty_bytes() -> Result {
         let data = data_with_size(Size::Empty as usize);
         let mut bytes: &[u8] = &data;
         let digest = bytes.chksum(HashAlgorithm::SHA1)?;
@@ -81,7 +81,7 @@ mod sha1 {
     }
 
     #[test]
-    fn tiny_str() -> Result {
+    fn tiny_bytes() -> Result {
         let data = data_with_size(Size::Tiny as usize);
         let mut bytes: &[u8] = &data;
         let digest = bytes.chksum(HashAlgorithm::SHA1)?;
@@ -91,7 +91,7 @@ mod sha1 {
     }
 
     #[test]
-    fn small_str() -> Result {
+    fn small_bytes() -> Result {
         let data = data_with_size(Size::Small as usize);
         let mut bytes: &[u8] = &data;
         let digest = bytes.chksum(HashAlgorithm::SHA1)?;
@@ -101,7 +101,7 @@ mod sha1 {
     }
 
     #[test]
-    fn medium_str() -> Result {
+    fn medium_bytes() -> Result {
         let data = data_with_size(Size::Medium as usize);
         let mut bytes: &[u8] = &data;
         let digest = bytes.chksum(HashAlgorithm::SHA1)?;
@@ -111,7 +111,7 @@ mod sha1 {
     }
 
     #[test]
-    fn big_str() -> Result {
+    fn big_bytes() -> Result {
         let data = data_with_size(Size::Big as usize);
         let mut bytes: &[u8] = &data;
         let digest = bytes.chksum(HashAlgorithm::SHA1)?;
@@ -121,7 +121,7 @@ mod sha1 {
     }
 
     #[test]
-    fn huge_str() -> Result {
+    fn huge_bytes() -> Result {
         let data = data_with_size(Size::Huge as usize);
         let mut bytes: &[u8] = &data;
         let digest = bytes.chksum(HashAlgorithm::SHA1)?;

@@ -193,3 +193,119 @@ mod sha1 {
         Ok(())
     }
 }
+
+mod sha2 {
+    use super::*;
+
+    mod sha256 {
+        use super::*;
+
+        #[test]
+        fn empty_file() -> Result {
+            let data = data_with_size(Size::Empty as usize);
+            let mut file = {
+                let mut file = tempfile()?;
+                file.write(&data)?;
+                file.seek(SeekFrom::Start(0))?;
+                file
+            };
+            let digest = file.chksum(HashAlgorithm::SHA2_256)?;
+            let digest = format!("{:X}", digest);
+            assert_eq!(
+                digest,
+                "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+            );
+            Ok(())
+        }
+
+        #[test]
+        fn tiny_file() -> Result {
+            let data = data_with_size(Size::Tiny as usize);
+            let mut file = {
+                let mut file = tempfile()?;
+                file.write(&data)?;
+                file.seek(SeekFrom::Start(0))?;
+                file
+            };
+            let digest = file.chksum(HashAlgorithm::SHA2_256)?;
+            let digest = format!("{:X}", digest);
+            assert_eq!(
+                digest,
+                "9C56CC51B374C3BA189210D5B6D4BF57790D351C96C47C02190ECF1E430635AB"
+            );
+            Ok(())
+        }
+
+        #[test]
+        fn small_file() -> Result {
+            let data = data_with_size(Size::Small as usize);
+            let mut file = {
+                let mut file = tempfile()?;
+                file.write(&data)?;
+                file.seek(SeekFrom::Start(0))?;
+                file
+            };
+            let digest = file.chksum(HashAlgorithm::SHA2_256)?;
+            let digest = format!("{:X}", digest);
+            assert_eq!(
+                digest,
+                "FA443F246563D77F1F47C322251159E32A357005BF6BFCC618C3C905E849CBCD"
+            );
+            Ok(())
+        }
+
+        #[test]
+        fn medium_file() -> Result {
+            let data = data_with_size(Size::Medium as usize);
+            let mut file = {
+                let mut file = tempfile()?;
+                file.write(&data)?;
+                file.seek(SeekFrom::Start(0))?;
+                file
+            };
+            let digest = file.chksum(HashAlgorithm::SHA2_256)?;
+            let digest = format!("{:X}", digest);
+            assert_eq!(
+                digest,
+                "4E54C175A12A9172FA0C81DF71542AC61F7B7A9AC032E8CA607FE2C00C172ECE"
+            );
+            Ok(())
+        }
+
+        #[test]
+        fn big_file() -> Result {
+            let data = data_with_size(Size::Big as usize);
+            let mut file = {
+                let mut file = tempfile()?;
+                file.write(&data)?;
+                file.seek(SeekFrom::Start(0))?;
+                file
+            };
+            let digest = file.chksum(HashAlgorithm::SHA2_256)?;
+            let digest = format!("{:X}", digest);
+            assert_eq!(
+                digest,
+                "85ECFC8853A01F2F02D60E3E5C424F228F17D838103C55A64DFAEFC9A5D8D821"
+            );
+            Ok(())
+        }
+
+        #[test]
+        fn huge_file() -> Result {
+            let data = data_with_size(Size::Huge as usize);
+            let mut file = {
+                let mut file = tempfile()?;
+                file.write(&data)?;
+                file.seek(SeekFrom::Start(0))?;
+                file
+            };
+            let digest = file.chksum(HashAlgorithm::SHA2_256)?;
+            let digest = format!("{:X}", digest);
+            assert_eq!(
+                digest,
+                "B98AD09EDAEBC3F92CC63176DB23E37ADDE356AD2745CFA8885280A2D4EDFC1C"
+            );
+            Ok(())
+        }
+    }
+}

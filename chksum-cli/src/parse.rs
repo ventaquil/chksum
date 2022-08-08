@@ -25,6 +25,7 @@ where
     match value {
         "MD5" => Ok(HashAlgorithm::MD5),
         "SHA1" | "SHA-1" => Ok(HashAlgorithm::SHA1),
+        "SHA256" | "SHA-256" | "SHA2 256" | "SHA-2 256" => Ok(HashAlgorithm::SHA2_256),
         _ => Err(Error::HashAlgorithmUnknown),
     }
 }
@@ -101,6 +102,50 @@ mod tests {
         assert!(
             matches!(hash("SHA 1"), Err(Error::HashAlgorithmUnknown)),
             "string is not a valid SHA-1 name!"
+        );
+    }
+
+    #[test]
+    fn test_hash_sha2_256() {
+        assert!(
+            matches!(hash("SHA256"), Ok(HashAlgorithm::SHA2_256)),
+            "string is a valid SHA-2 256 name!"
+        );
+        assert!(
+            matches!(hash("SHA-256"), Ok(HashAlgorithm::SHA2_256)),
+            "string is a valid SHA-2 256 name!"
+        );
+        assert!(
+            matches!(hash("SHA2 256"), Ok(HashAlgorithm::SHA2_256)),
+            "string is a valid SHA-2 256 name!"
+        );
+        assert!(
+            matches!(hash("SHA-2 256"), Ok(HashAlgorithm::SHA2_256)),
+            "string is a valid SHA-2 256 name!"
+        );
+        assert!(
+            matches!(hash("sha256"), Err(Error::HashAlgorithmUnknown)),
+            "string is not a valid SHA-2 256 name!"
+        );
+        assert!(
+            matches!(hash("Sha256"), Err(Error::HashAlgorithmUnknown)),
+            "string is not a valid SHA-2 256 name!"
+        );
+        assert!(
+            matches!(hash("SHA 256"), Err(Error::HashAlgorithmUnknown)),
+            "string is not a valid SHA-2 256 name!"
+        );
+        assert!(
+            matches!(hash("sha2 256"), Err(Error::HashAlgorithmUnknown)),
+            "string is not a valid SHA-2 256 name!"
+        );
+        assert!(
+            matches!(hash("Sha2 256"), Err(Error::HashAlgorithmUnknown)),
+            "string is not a valid SHA-2 256 name!"
+        );
+        assert!(
+            matches!(hash("SHA 2 256"), Err(Error::HashAlgorithmUnknown)),
+            "string is not a valid SHA-2 256 name!"
         );
     }
 

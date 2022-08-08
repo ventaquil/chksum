@@ -2,6 +2,7 @@ use std::fmt::{self, Formatter, LowerHex, UpperHex};
 
 pub mod md5;
 pub mod sha1;
+pub mod sha2;
 
 use std::num::ParseIntError;
 
@@ -23,6 +24,8 @@ pub enum HashAlgorithm {
     MD5,
     /// SHA-1 hash function implemented in [`sha1`] module.
     SHA1,
+    /// SHA-2 256 hash function implemented in [`sha2::sha256`] module.
+    SHA2_256,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -31,6 +34,8 @@ pub enum HashDigest {
     MD5(md5::Digest),
     /// Digest of SHA-1 hash function implemented in [`sha1`] module.
     SHA1(sha1::Digest),
+    /// Digest of SHA-2 256 hash function implemented in [`sha2::sha256`] module.
+    SHA2_256(sha2::sha256::Digest),
 }
 
 impl From<md5::Digest> for HashDigest {
@@ -47,12 +52,20 @@ impl From<sha1::Digest> for HashDigest {
     }
 }
 
+impl From<sha2::sha256::Digest> for HashDigest {
+    #[cfg_attr(not(debug_assertions), inline)]
+    fn from(digest: sha2::sha256::Digest) -> Self {
+        Self::SHA2_256(digest)
+    }
+}
+
 impl LowerHex for HashDigest {
     #[cfg_attr(not(debug_assertions), inline)]
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
             Self::MD5(digest) => LowerHex::fmt(digest, f),
             Self::SHA1(digest) => LowerHex::fmt(digest, f),
+            Self::SHA2_256(digest) => LowerHex::fmt(digest, f),
         }
     }
 }
@@ -63,6 +76,7 @@ impl UpperHex for HashDigest {
         match self {
             Self::MD5(digest) => UpperHex::fmt(digest, f),
             Self::SHA1(digest) => UpperHex::fmt(digest, f),
+            Self::SHA2_256(digest) => UpperHex::fmt(digest, f),
         }
     }
 }

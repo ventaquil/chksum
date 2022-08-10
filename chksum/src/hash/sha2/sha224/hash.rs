@@ -61,13 +61,14 @@ impl Hash {
     /// Add padding to internal state and prepare digest.
     #[cfg_attr(not(debug_assertions), inline)]
     pub fn pad(&mut self) -> &mut Self {
+        let block_length = self.buffer.len();
         let block: Block = {
             self.buffer.resize(BLOCK_LENGTH_BYTES, 0x00);
             let block = self.buffer.drain(..BLOCK_LENGTH_BYTES);
             let block: [u8; BLOCK_LENGTH_BYTES] = block.as_slice().try_into().unwrap();
             block.into()
         };
-        match pad(block, self.counter) {
+        match pad(block, block_length, self.counter) {
             Padding::Single(block) => {
                 self.state.update(block.into());
             },

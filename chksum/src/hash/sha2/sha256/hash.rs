@@ -10,10 +10,10 @@ use super::State;
 /// # Examples
 ///
 /// ```rust
-/// # use chksum::hash::DigestResult;
+/// # use chksum::hash::digest::Result;
 /// use chksum::hash::sha2::sha256::{Digest, Hash};
 ///
-/// # fn wrapper() -> DigestResult<()> {
+/// # fn wrapper() -> Result<()> {
 /// assert_eq!(
 ///     Hash::new().update(b"data").pad().digest(),
 ///     Digest::try_from("3a6eb0790f39ac87c94f3856b2dd2c5d110e6811602261a9a923d3bb23adc8b7")?
@@ -83,10 +83,10 @@ impl Hash {
     /// # Examples
     ///
     /// ```rust
-    /// # use chksum::hash::DigestResult;
+    /// # use chksum::hash::digest::Result;
     /// use chksum::hash::sha2::sha256::{Digest, Hash};
     ///
-    /// # fn wrapper() -> DigestResult<()> {
+    /// # fn wrapper() -> Result<()> {
     /// let data = [0x00u8; 16];
     /// #[rustfmt::skip]
     /// let digest = Digest::try_from("E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855")?;
@@ -191,10 +191,10 @@ impl Write for Hash {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::hash::DigestResult;
+    use crate::hash::digest::Result;
 
     #[test]
-    fn hash_new() -> DigestResult<()> {
+    fn hash_new() -> Result<()> {
         assert_eq!(
             Hash::new().pad().digest(),
             Digest::try_from("E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855")?
@@ -203,7 +203,7 @@ mod tests {
     }
 
     #[test]
-    fn hash_hello_world() -> DigestResult<()> {
+    fn hash_hello_world() -> Result<()> {
         assert_eq!(
             Hash::new().update("Hello World").pad().digest(),
             Digest::try_from("A591A6D40BF420404A011733CFB7B190D62C65BF0BCDA32B57B277D9AD9F146E")?
@@ -212,7 +212,7 @@ mod tests {
     }
 
     #[test]
-    fn hash_hello_world_by_chunks() -> DigestResult<()> {
+    fn hash_hello_world_by_chunks() -> Result<()> {
         assert_eq!(
             Hash::new().update("Hello").update(" ").update("World").pad().digest(),
             Digest::try_from("A591A6D40BF420404A011733CFB7B190D62C65BF0BCDA32B57B277D9AD9F146E")?

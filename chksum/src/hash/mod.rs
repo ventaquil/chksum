@@ -1,22 +1,9 @@
 use std::fmt::{self, Formatter, LowerHex, UpperHex};
 
+pub mod digest;
 pub mod md5;
 pub mod sha1;
 pub mod sha2;
-
-use std::num::ParseIntError;
-
-use thiserror::Error;
-
-#[derive(Debug, Eq, Error, PartialEq)]
-pub enum DigestError {
-    #[error("Invalid digest length `{value}`, proper value `{proper}`")]
-    InvalidLength { value: usize, proper: usize },
-    #[error(transparent)]
-    ParseError(#[from] ParseIntError),
-}
-
-pub type DigestResult<T> = Result<T, DigestError>;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum HashAlgorithm {

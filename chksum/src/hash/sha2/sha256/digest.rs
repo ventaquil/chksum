@@ -1,7 +1,7 @@
 use std::fmt::{self, Formatter, LowerHex, UpperHex};
 
 use super::State;
-use crate::hash::DigestError;
+use crate::hash::digest;
 
 pub(super) const DIGEST_LENGTH_BITS: usize = 256;
 pub(super) const DIGEST_LENGTH_BYTES: usize = DIGEST_LENGTH_BITS / 8;
@@ -14,11 +14,11 @@ pub(super) const DIGEST_LENGTH_HEX: usize = DIGEST_LENGTH_BYTES * 2;
 /// # Examples
 ///
 /// ```rust
-/// # use chksum::hash::DigestResult;
+/// # use chksum::hash::digest::Result;
 /// use chksum::hash::sha2::sha256::Digest;
 ///
-/// # fn wrapper() -> DigestResult<()> {
 /// #[rustfmt::skip]
+/// # fn wrapper() -> Result<()> {
 /// let digest = Digest::try_from("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")?;
 /// println!("digest {:?}", digest);
 /// println!("digest {:x}", digest);
@@ -132,7 +132,7 @@ impl UpperHex for Digest {
 }
 
 impl TryFrom<&str> for Digest {
-    type Error = DigestError;
+    type Error = digest::Error;
 
     #[cfg_attr(not(debug_assertions), inline)]
     fn try_from(digest: &str) -> Result<Self, Self::Error> {
@@ -162,10 +162,10 @@ impl TryFrom<&str> for Digest {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::hash::DigestResult;
+    use crate::hash::digest::Result;
 
     #[test]
-    fn digest_format() -> DigestResult<()> {
+    fn digest_format() -> Result<()> {
         let digest = Digest::try_from("E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855")?;
         assert_eq!(
             format!("{digest:x}"),
@@ -250,15 +250,15 @@ mod tests {
         );
         assert!(matches!(
             Digest::try_from("D4"),
-            Err(DigestError::InvalidLength { value: _, proper: _ })
+            Err(digest::Error::InvalidLength { value: _, proper: _ })
         ));
         assert!(matches!(
             Digest::try_from("E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855XX"),
-            Err(DigestError::InvalidLength { value: _, proper: _ })
+            Err(digest::Error::InvalidLength { value: _, proper: _ })
         ));
         assert!(matches!(
             Digest::try_from("E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B8XX"),
-            Err(DigestError::ParseError(_))
+            Err(digest::Error::ParseError(_))
         ));
     }
 }

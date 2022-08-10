@@ -10,10 +10,10 @@ use super::State;
 /// # Examples
 ///
 /// ```rust
-/// # use chksum::hash::DigestResult;
+/// # use chksum::hash::digest::Result;
 /// use chksum::hash::sha1::{Digest, Hash};
 ///
-/// # fn wrapper() -> DigestResult<()> {
+/// # fn wrapper() -> Result<()> {
 /// assert_eq!(
 ///     Hash::new().update(b"data").pad().digest(),
 ///     Digest::try_from("a17c9aaa61e80a1bf71d0d850af4e5baa9800bbd")?
@@ -83,10 +83,10 @@ impl Hash {
     /// # Examples
     ///
     /// ```rust
-    /// # use chksum::hash::DigestResult;
+    /// # use chksum::hash::digest::Result;
     /// use chksum::hash::sha1::{Digest, Hash};
     ///
-    /// # fn wrapper() -> DigestResult<()> {
+    /// # fn wrapper() -> Result<()> {
     /// let data = [0x00u8; 16];
     /// let digest = Digest::try_from("DA39A3EE5E6B4B0D3255BFEF95601890AFD80709")?;
     ///
@@ -190,10 +190,10 @@ impl Write for Hash {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::hash::DigestResult;
+    use crate::hash::digest::Result;
 
     #[test]
-    fn hash_new() -> DigestResult<()> {
+    fn hash_new() -> Result<()> {
         assert_eq!(
             Hash::new().pad().digest(),
             Digest::try_from("DA39A3EE5E6B4B0D3255BFEF95601890AFD80709")?
@@ -202,7 +202,7 @@ mod tests {
     }
 
     #[test]
-    fn hash_hello_world() -> DigestResult<()> {
+    fn hash_hello_world() -> Result<()> {
         assert_eq!(
             Hash::new().update("Hello World").pad().digest(),
             Digest::try_from("0A4D55A8D778E5022FAB701977C5D840BBC486D0")?
@@ -211,7 +211,7 @@ mod tests {
     }
 
     #[test]
-    fn hash_hello_world_by_chunks() -> DigestResult<()> {
+    fn hash_hello_world_by_chunks() -> Result<()> {
         assert_eq!(
             Hash::new().update("Hello").update(" ").update("World").pad().digest(),
             Digest::try_from("0A4D55A8D778E5022FAB701977C5D840BBC486D0")?

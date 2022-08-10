@@ -1,7 +1,7 @@
 use std::fmt::{self, Formatter, LowerHex, UpperHex};
 
 use super::State;
-use crate::hash::DigestError;
+use crate::hash::digest;
 
 pub(super) const DIGEST_LENGTH_BITS: usize = 128;
 pub(super) const DIGEST_LENGTH_BYTES: usize = DIGEST_LENGTH_BITS / 8;
@@ -14,10 +14,10 @@ pub(super) const DIGEST_LENGTH_HEX: usize = DIGEST_LENGTH_BYTES * 2;
 /// # Examples
 ///
 /// ```rust
-/// # use chksum::hash::DigestResult;
+/// # use chksum::hash::digest::Result;
 /// use chksum::hash::md5::Digest;
 ///
-/// # fn wrapper() -> DigestResult<()> {
+/// # fn wrapper() -> Result<()> {
 /// let digest = Digest::try_from("d41d8cd98f00b204e9800998ecf8427e")?;
 /// println!("digest {:?}", digest);
 /// println!("digest {:x}", digest);
@@ -115,12 +115,12 @@ impl UpperHex for Digest {
 }
 
 impl TryFrom<&str> for Digest {
-    type Error = DigestError;
+    type Error = digest::Error;
 
     #[cfg_attr(not(debug_assertions), inline)]
     fn try_from(digest: &str) -> Result<Self, Self::Error> {
         if digest.len() != DIGEST_LENGTH_HEX {
-            let error = DigestError::InvalidLength {
+            let error = Self::Error::InvalidLength {
                 value: digest.len(),
                 proper: DIGEST_LENGTH_HEX,
             };
@@ -178,15 +178,15 @@ mod tests {
         );
         assert!(matches!(
             Digest::try_from("D4"),
-            Err(DigestError::InvalidLength { value: _, proper: _ })
+            Err(digest::Error::InvalidLength { value: _, proper: _ })
         ));
         assert!(matches!(
             Digest::try_from("D41D8CD98F00B204E9800998ECF8427EXX"),
-            Err(DigestError::InvalidLength { value: _, proper: _ })
+            Err(digest::Error::InvalidLength { value: _, proper: _ })
         ));
         assert!(matches!(
             Digest::try_from("D41D8CD98F00B204E9800998ECF842XX"),
-            Err(DigestError::ParseError(_))
+            Err(digest::Error::ParseError(_))
         ));
     }
 }

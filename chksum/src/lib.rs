@@ -43,6 +43,7 @@
 //! # }
 //! ```
 
+#![cfg_attr(doc_cfg, feature(doc_cfg))]
 #![cfg_attr(nightly, feature(optimize_attribute))]
 
 pub mod hash;

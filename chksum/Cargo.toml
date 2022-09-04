@@ -23,6 +23,7 @@ sha2_512 = []
 
 [package.metadata.docs.rs]
 all-features = true
+rustdoc-args = ["--cfg", "doc_cfg"]
 
 [dependencies]
 atty = "0.2.14"

@@ -2,31 +2,40 @@ use std::fmt::{self, Formatter, LowerHex, UpperHex};
 
 pub mod digest;
 #[cfg(feature = "md5")]
+#[cfg_attr(doc_cfg, doc(cfg(feature = "md5")))]
 pub mod md5;
 #[cfg(feature = "sha1")]
+#[cfg_attr(doc_cfg, doc(cfg(feature = "sha1")))]
 pub mod sha1;
 #[cfg(any(feature = "sha2_224", feature = "sha2_256", feature = "sha2_384", feature = "sha2_512"))]
+#[cfg_attr(doc_cfg, doc(cfg(any(feature = "sha2_224", feature = "sha2_256", feature = "sha2_384", feature = "sha2_512"))))]
 pub mod sha2;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum HashAlgorithm {
     /// MD5 hash function implemented in [`md5`] module.
     #[cfg(feature = "md5")]
+    #[cfg_attr(doc_cfg, doc(cfg(feature = "md5")))]
     MD5,
     /// SHA-1 hash function implemented in [`sha1`] module.
     #[cfg(feature = "sha1")]
+    #[cfg_attr(doc_cfg, doc(cfg(feature = "sha1")))]
     SHA1,
     /// SHA-2 224 hash function implemented in [`sha2::sha224`] module.
     #[cfg(feature = "sha2_224")]
+    #[cfg_attr(doc_cfg, doc(cfg(feature = "sha2_224")))]
     SHA2_224,
     /// SHA-2 256 hash function implemented in [`sha2::sha256`] module.
     #[cfg(feature = "sha2_256")]
+    #[cfg_attr(doc_cfg, doc(cfg(feature = "sha2_256")))]
     SHA2_256,
     /// SHA-2 384 hash function implemented in [`sha2::sha384`] module.
     #[cfg(feature = "sha2_384")]
+    #[cfg_attr(doc_cfg, doc(cfg(feature = "sha2_384")))]
     SHA2_384,
     /// SHA-2 512 hash function implemented in [`sha2::sha512`] module.
     #[cfg(feature = "sha2_512")]
+    #[cfg_attr(doc_cfg, doc(cfg(feature = "sha2_512")))]
     SHA2_512,
 }
 
@@ -34,25 +43,32 @@ pub enum HashAlgorithm {
 pub enum HashDigest {
     /// Digest of MD5 hash function implemented in [`md5`] module.
     #[cfg(feature = "md5")]
+    #[cfg_attr(doc_cfg, doc(cfg(feature = "md5")))]
     MD5(md5::Digest),
     /// Digest of SHA-1 hash function implemented in [`sha1`] module.
     #[cfg(feature = "sha1")]
+    #[cfg_attr(doc_cfg, doc(cfg(feature = "sha1")))]
     SHA1(sha1::Digest),
     /// Digest of SHA-2 224 hash function implemented in [`sha2::sha224`] module.
     #[cfg(feature = "sha2_224")]
+    #[cfg_attr(doc_cfg, doc(cfg(feature = "sha2_224")))]
     SHA2_224(sha2::sha224::Digest),
     /// Digest of SHA-2 256 hash function implemented in [`sha2::sha256`] module.
     #[cfg(feature = "sha2_256")]
+    #[cfg_attr(doc_cfg, doc(cfg(feature = "sha2_256")))]
     SHA2_256(sha2::sha256::Digest),
     /// Digest of SHA-2 384 hash function implemented in [`sha2::sha384`] module.
     #[cfg(feature = "sha2_384")]
+    #[cfg_attr(doc_cfg, doc(cfg(feature = "sha2_384")))]
     SHA2_384(sha2::sha384::Digest),
     /// Digest of SHA-2 512 hash function implemented in [`sha2::sha512`] module.
     #[cfg(feature = "sha2_512")]
+    #[cfg_attr(doc_cfg, doc(cfg(feature = "sha2_512")))]
     SHA2_512(sha2::sha512::Digest),
 }
 
 #[cfg(feature = "md5")]
+#[cfg_attr(doc_cfg, doc(cfg(feature = "md5")))]
 impl From<md5::Digest> for HashDigest {
     #[cfg_attr(not(debug_assertions), inline)]
     fn from(digest: md5::Digest) -> Self {
@@ -61,6 +77,7 @@ impl From<md5::Digest> for HashDigest {
 }
 
 #[cfg(feature = "sha1")]
+#[cfg_attr(doc_cfg, doc(cfg(feature = "sha1")))]
 impl From<sha1::Digest> for HashDigest {
     #[cfg_attr(not(debug_assertions), inline)]
     fn from(digest: sha1::Digest) -> Self {
@@ -69,6 +86,7 @@ impl From<sha1::Digest> for HashDigest {
 }
 
 #[cfg(feature = "sha2_224")]
+#[cfg_attr(doc_cfg, doc(cfg(feature = "sha2_224")))]
 impl From<sha2::sha224::Digest> for HashDigest {
     #[cfg_attr(not(debug_assertions), inline)]
     fn from(digest: sha2::sha224::Digest) -> Self {
@@ -77,6 +95,7 @@ impl From<sha2::sha224::Digest> for HashDigest {
 }
 
 #[cfg(feature = "sha2_256")]
+#[cfg_attr(doc_cfg, doc(cfg(feature = "sha2_256")))]
 impl From<sha2::sha256::Digest> for HashDigest {
     #[cfg_attr(not(debug_assertions), inline)]
     fn from(digest: sha2::sha256::Digest) -> Self {
@@ -85,6 +104,7 @@ impl From<sha2::sha256::Digest> for HashDigest {
 }
 
 #[cfg(feature = "sha2_384")]
+#[cfg_attr(doc_cfg, doc(cfg(feature = "sha2_384")))]
 impl From<sha2::sha384::Digest> for HashDigest {
     #[cfg_attr(not(debug_assertions), inline)]
     fn from(digest: sha2::sha384::Digest) -> Self {
@@ -93,6 +113,7 @@ impl From<sha2::sha384::Digest> for HashDigest {
 }
 
 #[cfg(feature = "sha2_512")]
+#[cfg_attr(doc_cfg, doc(cfg(feature = "sha2_512")))]
 impl From<sha2::sha512::Digest> for HashDigest {
     #[cfg_attr(not(debug_assertions), inline)]
     fn from(digest: sha2::sha512::Digest) -> Self {

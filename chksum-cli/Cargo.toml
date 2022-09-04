@@ -11,9 +11,6 @@ license = "MIT"
 keywords = ["checksum", "directory-checksum", "file-checksum", "hash"]
 categories = ["command-line-utilities", "cryptography", "filesystem"]
 
-[package.metadata.docs.rs]
-all-features = true
-
 [dependencies]
 anyhow = "1.0.58"
 chksum = { path = "../chksum", version = "0.1.0-rc4" }

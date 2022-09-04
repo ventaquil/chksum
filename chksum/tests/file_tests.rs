@@ -196,7 +196,12 @@ mod sha1 {
     }
 }
 
-#[cfg(any(feature = "sha2_224", feature = "sha2_256", feature = "sha2_384", feature = "sha2_512"))]
+#[cfg(any(
+    feature = "sha2_224",
+    feature = "sha2_256",
+    feature = "sha2_384",
+    feature = "sha2_512"
+))]
 mod sha2 {
     use super::*;
 

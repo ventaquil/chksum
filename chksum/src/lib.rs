@@ -60,13 +60,18 @@ use std::result;
 use std::str::Utf8Error;
 use std::string::FromUtf8Error;
 
-use self::hash::{HashAlgorithm, HashDigest};
 #[cfg(feature = "md5")]
 use self::hash::md5;
 #[cfg(feature = "sha1")]
 use self::hash::sha1;
-#[cfg(any(feature = "sha2_224", feature = "sha2_256", feature = "sha2_384", feature = "sha2_512"))]
+#[cfg(any(
+    feature = "sha2_224",
+    feature = "sha2_256",
+    feature = "sha2_384",
+    feature = "sha2_512"
+))]
 use self::hash::sha2;
+use self::hash::{HashAlgorithm, HashDigest};
 
 /// Contains informations about hashing process.
 ///

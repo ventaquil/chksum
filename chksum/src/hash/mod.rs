@@ -7,8 +7,21 @@ pub mod md5;
 #[cfg(feature = "sha1")]
 #[cfg_attr(doc_cfg, doc(cfg(feature = "sha1")))]
 pub mod sha1;
-#[cfg(any(feature = "sha2_224", feature = "sha2_256", feature = "sha2_384", feature = "sha2_512"))]
-#[cfg_attr(doc_cfg, doc(cfg(any(feature = "sha2_224", feature = "sha2_256", feature = "sha2_384", feature = "sha2_512"))))]
+#[cfg(any(
+    feature = "sha2_224",
+    feature = "sha2_256",
+    feature = "sha2_384",
+    feature = "sha2_512"
+))]
+#[cfg_attr(
+    doc_cfg,
+    doc(cfg(any(
+        feature = "sha2_224",
+        feature = "sha2_256",
+        feature = "sha2_384",
+        feature = "sha2_512"
+    )))
+)]
 pub mod sha2;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]

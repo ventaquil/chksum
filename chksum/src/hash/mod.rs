@@ -15,6 +15,8 @@ pub enum HashAlgorithm {
     SHA2_224,
     /// SHA-2 256 hash function implemented in [`sha2::sha256`] module.
     SHA2_256,
+    /// SHA-2 512 hash function implemented in [`sha2::sha512`] module.
+    SHA2_512,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -27,6 +29,8 @@ pub enum HashDigest {
     SHA2_224(sha2::sha224::Digest),
     /// Digest of SHA-2 256 hash function implemented in [`sha2::sha256`] module.
     SHA2_256(sha2::sha256::Digest),
+    /// Digest of SHA-2 512 hash function implemented in [`sha2::sha512`] module.
+    SHA2_512(sha2::sha512::Digest),
 }
 
 impl From<md5::Digest> for HashDigest {
@@ -57,6 +61,13 @@ impl From<sha2::sha256::Digest> for HashDigest {
     }
 }
 
+impl From<sha2::sha512::Digest> for HashDigest {
+    #[cfg_attr(not(debug_assertions), inline)]
+    fn from(digest: sha2::sha512::Digest) -> Self {
+        Self::SHA2_512(digest)
+    }
+}
+
 impl LowerHex for HashDigest {
     #[cfg_attr(not(debug_assertions), inline)]
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
@@ -65,6 +76,7 @@ impl LowerHex for HashDigest {
             Self::SHA1(digest) => LowerHex::fmt(digest, f),
             Self::SHA2_224(digest) => LowerHex::fmt(digest, f),
             Self::SHA2_256(digest) => LowerHex::fmt(digest, f),
+            Self::SHA2_512(digest) => LowerHex::fmt(digest, f),
         }
     }
 }
@@ -77,6 +89,7 @@ impl UpperHex for HashDigest {
             Self::SHA1(digest) => UpperHex::fmt(digest, f),
             Self::SHA2_224(digest) => UpperHex::fmt(digest, f),
             Self::SHA2_256(digest) => UpperHex::fmt(digest, f),
+            Self::SHA2_512(digest) => UpperHex::fmt(digest, f),
         }
     }
 }
@@ -114,6 +127,14 @@ mod tests {
         let digest = "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855";
         let digest = sha2::sha256::Digest::try_from(digest)?;
         assert_eq!(HashDigest::from(digest), HashDigest::SHA2_256(digest));
+        Ok(())
+    }
+
+    #[test]
+    fn hash_digest_from_sha2_512() -> digest::Result<()> {
+        let digest = "CF83E1357EEFB8BDF1542850D66D8007D620E4050B5715DC83F4A921D36CE9CE47D0D13C5D85F2B0FF8318D2877EEC2F63B931BD47417A81A538327AF927DA3E";
+        let digest = sha2::sha512::Digest::try_from(digest)?;
+        assert_eq!(HashDigest::from(digest), HashDigest::SHA2_512(digest));
         Ok(())
     }
 
@@ -160,6 +181,18 @@ mod tests {
     }
 
     #[test]
+    fn hash_digest_sha2_512_lower_hex() -> digest::Result<()> {
+        let digest = "CF83E1357EEFB8BDF1542850D66D8007D620E4050B5715DC83F4A921D36CE9CE47D0D13C5D85F2B0FF8318D2877EEC2F63B931BD47417A81A538327AF927DA3E";
+        let digest = sha2::sha512::Digest::try_from(digest)?;
+        let digest = HashDigest::SHA2_512(digest);
+        assert_eq!(
+            format!("{:x}", digest),
+            "cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e"
+        );
+        Ok(())
+    }
+
+    #[test]
     fn hash_digest_md5_upper_hex() -> digest::Result<()> {
         let digest = "d41d8cd98f00b204e9800998ecf8427e";
         let digest = md5::Digest::try_from(digest)?;
@@ -197,6 +230,18 @@ mod tests {
         assert_eq!(
             format!("{:X}", digest),
             "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn hash_digest_sha2_512_upper_hex() -> digest::Result<()> {
+        let digest = "cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e";
+        let digest = sha2::sha512::Digest::try_from(digest)?;
+        let digest = HashDigest::SHA2_512(digest);
+        assert_eq!(
+            format!("{:X}", digest),
+            "CF83E1357EEFB8BDF1542850D66D8007D620E4050B5715DC83F4A921D36CE9CE47D0D13C5D85F2B0FF8318D2877EEC2F63B931BD47417A81A538327AF927DA3E"
         );
         Ok(())
     }

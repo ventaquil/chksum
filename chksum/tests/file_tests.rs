@@ -402,4 +402,116 @@ mod sha2 {
             Ok(())
         }
     }
+
+    mod sha512 {
+        use super::*;
+
+        #[test]
+        fn empty_file() -> Result {
+            let data = data_with_size(Size::Empty as usize);
+            let mut file = {
+                let mut file = tempfile()?;
+                file.write(&data)?;
+                file.seek(SeekFrom::Start(0))?;
+                file
+            };
+            let digest = file.chksum(HashAlgorithm::SHA2_512)?;
+            let digest = format!("{:X}", digest);
+            assert_eq!(
+                digest,
+                "CF83E1357EEFB8BDF1542850D66D8007D620E4050B5715DC83F4A921D36CE9CE47D0D13C5D85F2B0FF8318D2877EEC2F63B931BD47417A81A538327AF927DA3E"
+            );
+            Ok(())
+        }
+
+        #[test]
+        fn tiny_file() -> Result {
+            let data = data_with_size(Size::Tiny as usize);
+            let mut file = {
+                let mut file = tempfile()?;
+                file.write(&data)?;
+                file.seek(SeekFrom::Start(0))?;
+                file
+            };
+            let digest = file.chksum(HashAlgorithm::SHA2_512)?;
+            let digest = format!("{:X}", digest);
+            assert_eq!(
+                digest,
+                "A3A8C81BC97C2560010D7389BC88AAC974A104E0E2381220C6E084C4DCCD1D2D17D4F86DB31C2A851DC80E6681D74733C55DCD03DD96F6062CDDA12A291AE6CE"
+            );
+            Ok(())
+        }
+
+        #[test]
+        fn small_file() -> Result {
+            let data = data_with_size(Size::Small as usize);
+            let mut file = {
+                let mut file = tempfile()?;
+                file.write(&data)?;
+                file.seek(SeekFrom::Start(0))?;
+                file
+            };
+            let digest = file.chksum(HashAlgorithm::SHA2_512)?;
+            let digest = format!("{:X}", digest);
+            assert_eq!(
+                digest,
+                "B4D18A20A6333CE63A9D50065F440267A66BE94BADD7EF87828A22B6133F943B2E525577CC64B9B6852CAAF36FF52B0FE4F5C691F835EC0AD3A2B5C50806655F"
+            );
+            Ok(())
+        }
+
+        #[test]
+        fn medium_file() -> Result {
+            let data = data_with_size(Size::Medium as usize);
+            let mut file = {
+                let mut file = tempfile()?;
+                file.write(&data)?;
+                file.seek(SeekFrom::Start(0))?;
+                file
+            };
+            let digest = file.chksum(HashAlgorithm::SHA2_512)?;
+            let digest = format!("{:X}", digest);
+            assert_eq!(
+                digest,
+                "DBCD7D1B4B363FB217B6A0CE274528BF0E9C0763B250EDCDC1936047ED92B9D91EF17E48E171835451CDCF7C89E31A699B17A2FFF210E57C0A294CC36DC7AF10"
+            );
+            Ok(())
+        }
+
+        #[test]
+        fn big_file() -> Result {
+            let data = data_with_size(Size::Big as usize);
+            let mut file = {
+                let mut file = tempfile()?;
+                file.write(&data)?;
+                file.seek(SeekFrom::Start(0))?;
+                file
+            };
+            let digest = file.chksum(HashAlgorithm::SHA2_512)?;
+            let digest = format!("{:X}", digest);
+            assert_eq!(
+                digest,
+                "42AB76F145553CCB7BBC018F661471DD9B5AE15193C81AE4BF186F9CA15CCB05DCB069B27F533FC63EC530C3E5835969F91BE8C6EA45ADE9BB90BB023CF78849"
+            );
+            Ok(())
+        }
+
+        #[test]
+        fn huge_file() -> Result {
+            let data = data_with_size(Size::Huge as usize);
+            let mut file = {
+                let mut file = tempfile()?;
+                file.write(&data)?;
+                file.seek(SeekFrom::Start(0))?;
+                file
+            };
+            let digest = file.chksum(HashAlgorithm::SHA2_512)?;
+            let digest = format!("{:X}", digest);
+            assert_eq!(
+                digest,
+                "86076E16966A41B4AB25E7D328001168B14A6CEA0EBB96A81404106A73A268CE1D78EA0F6C3B22BC790644830BC2D4CBC061479462DAEACC132E06A23D48F4F3"
+            );
+            Ok(())
+        }
+    }
 }

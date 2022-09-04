@@ -219,3 +219,45 @@ fn test_hash_sha1() -> Result {
 
     Ok(())
 }
+
+#[test]
+fn test_hash_sha2_512() -> Result {
+    // todo add more precise checks
+
+    let directory = TempDir::new()?;
+    let child = {
+        let child = directory.child("existing-file");
+        child.touch()?;
+        child
+    };
+
+    Command::cargo_bin("chksum-cli")?
+        .args(["-H", "SHA512"])
+        .arg(child.as_ref())
+        .assert()
+        .success();
+    Command::cargo_bin("chksum-cli")?
+        .args(["--hash", "SHA512"])
+        .arg(child.as_ref())
+        .assert()
+        .success();
+    Command::cargo_bin("chksum-cli")?
+        .args(["--hash", "SHA2 512"])
+        .arg(child.as_ref())
+        .assert()
+        .success();
+    Command::cargo_bin("chksum-cli")?
+        .args(["--hash", "SHA-2 512"])
+        .arg(child.as_ref())
+        .assert()
+        .success();
+    Command::cargo_bin("chksum-cli")?
+        .args(["--hash", "sha512"])
+        .arg(child.as_ref())
+        .assert()
+        .failure();
+
+    directory.close()?;
+
+    Ok(())
+}

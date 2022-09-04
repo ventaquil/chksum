@@ -27,6 +27,7 @@ where
         "SHA1" | "SHA-1" => Ok(HashAlgorithm::SHA1),
         "SHA224" | "SHA-224" | "SHA2 224" | "SHA-2 224" => Ok(HashAlgorithm::SHA2_224),
         "SHA256" | "SHA-256" | "SHA2 256" | "SHA-2 256" => Ok(HashAlgorithm::SHA2_256),
+        "SHA512" | "SHA-512" | "SHA2 512" | "SHA-2 512" => Ok(HashAlgorithm::SHA2_512),
         _ => Err(Error::HashAlgorithmUnknown),
     }
 }
@@ -191,6 +192,50 @@ mod tests {
         assert!(
             matches!(hash("SHA 2 256"), Err(Error::HashAlgorithmUnknown)),
             "string is not a valid SHA-2 256 name!"
+        );
+    }
+
+    #[test]
+    fn test_hash_sha2_512() {
+        assert!(
+            matches!(hash("SHA512"), Ok(HashAlgorithm::SHA2_512)),
+            "string is a valid SHA-2 512 name!"
+        );
+        assert!(
+            matches!(hash("SHA-512"), Ok(HashAlgorithm::SHA2_512)),
+            "string is a valid SHA-2 512 name!"
+        );
+        assert!(
+            matches!(hash("SHA2 512"), Ok(HashAlgorithm::SHA2_512)),
+            "string is a valid SHA-2 512 name!"
+        );
+        assert!(
+            matches!(hash("SHA-2 512"), Ok(HashAlgorithm::SHA2_512)),
+            "string is a valid SHA-2 512 name!"
+        );
+        assert!(
+            matches!(hash("sha512"), Err(Error::HashAlgorithmUnknown)),
+            "string is not a valid SHA-2 512 name!"
+        );
+        assert!(
+            matches!(hash("Sha512"), Err(Error::HashAlgorithmUnknown)),
+            "string is not a valid SHA-2 512 name!"
+        );
+        assert!(
+            matches!(hash("SHA 512"), Err(Error::HashAlgorithmUnknown)),
+            "string is not a valid SHA-2 512 name!"
+        );
+        assert!(
+            matches!(hash("sha2 512"), Err(Error::HashAlgorithmUnknown)),
+            "string is not a valid SHA-2 512 name!"
+        );
+        assert!(
+            matches!(hash("Sha2 512"), Err(Error::HashAlgorithmUnknown)),
+            "string is not a valid SHA-2 512 name!"
+        );
+        assert!(
+            matches!(hash("SHA 2 512"), Err(Error::HashAlgorithmUnknown)),
+            "string is not a valid SHA-2 512 name!"
         );
     }
 

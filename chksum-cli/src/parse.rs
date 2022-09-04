@@ -27,6 +27,7 @@ where
         "SHA1" | "SHA-1" => Ok(HashAlgorithm::SHA1),
         "SHA224" | "SHA-224" | "SHA2 224" | "SHA-2 224" => Ok(HashAlgorithm::SHA2_224),
         "SHA256" | "SHA-256" | "SHA2 256" | "SHA-2 256" => Ok(HashAlgorithm::SHA2_256),
+        "SHA384" | "SHA-384" | "SHA2 384" | "SHA-2 384" => Ok(HashAlgorithm::SHA2_384),
         "SHA512" | "SHA-512" | "SHA2 512" | "SHA-2 512" => Ok(HashAlgorithm::SHA2_512),
         _ => Err(Error::HashAlgorithmUnknown),
     }
@@ -192,6 +193,50 @@ mod tests {
         assert!(
             matches!(hash("SHA 2 256"), Err(Error::HashAlgorithmUnknown)),
             "string is not a valid SHA-2 256 name!"
+        );
+    }
+
+    #[test]
+    fn test_hash_sha2_384() {
+        assert!(
+            matches!(hash("SHA384"), Ok(HashAlgorithm::SHA2_384)),
+            "string is a valid SHA-2 384 name!"
+        );
+        assert!(
+            matches!(hash("SHA-384"), Ok(HashAlgorithm::SHA2_384)),
+            "string is a valid SHA-2 384 name!"
+        );
+        assert!(
+            matches!(hash("SHA2 384"), Ok(HashAlgorithm::SHA2_384)),
+            "string is a valid SHA-2 384 name!"
+        );
+        assert!(
+            matches!(hash("SHA-2 384"), Ok(HashAlgorithm::SHA2_384)),
+            "string is a valid SHA-2 384 name!"
+        );
+        assert!(
+            matches!(hash("sha384"), Err(Error::HashAlgorithmUnknown)),
+            "string is not a valid SHA-2 256 n384!"
+        );
+        assert!(
+            matches!(hash("Sha384"), Err(Error::HashAlgorithmUnknown)),
+            "string is not a valid SHA-2 384 name!"
+        );
+        assert!(
+            matches!(hash("SHA 384"), Err(Error::HashAlgorithmUnknown)),
+            "string is not a valid SHA-2 384 name!"
+        );
+        assert!(
+            matches!(hash("sha2 384"), Err(Error::HashAlgorithmUnknown)),
+            "string is not a valid SHA-2 384 name!"
+        );
+        assert!(
+            matches!(hash("Sha2 384"), Err(Error::HashAlgorithmUnknown)),
+            "string is not a valid SHA-2 384 name!"
+        );
+        assert!(
+            matches!(hash("SHA 2 384"), Err(Error::HashAlgorithmUnknown)),
+            "string is not a valid SHA-2 384 name!"
         );
     }
 

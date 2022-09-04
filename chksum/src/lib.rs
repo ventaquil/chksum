@@ -270,6 +270,19 @@ impl Chksum for &[u8] {
                 let digest = hash.pad().digest();
                 Ok(digest.into())
             },
+            HashAlgorithm::SHA2_384 => {
+                let mut buffer = vec![0u8; config.chunk_size];
+                let mut hash = sha2::sha384::Hash::new();
+                loop {
+                    let count = self.read(&mut buffer)?;
+                    hash.update(&buffer[..count]);
+                    if count == 0 {
+                        break;
+                    }
+                }
+                let digest = hash.pad().digest();
+                Ok(digest.into())
+            },
             HashAlgorithm::SHA2_512 => {
                 let mut buffer = vec![0u8; config.chunk_size];
                 let mut hash = sha2::sha512::Hash::new();
@@ -341,6 +354,19 @@ impl Chksum for File {
             HashAlgorithm::SHA2_256 => {
                 let mut buffer = vec![0u8; config.chunk_size];
                 let mut hash = sha2::sha256::Hash::new();
+                loop {
+                    let count = self.read(&mut buffer)?;
+                    hash.update(&buffer[..count]);
+                    if count == 0 {
+                        break;
+                    }
+                }
+                let digest = hash.pad().digest();
+                Ok(digest.into())
+            },
+            HashAlgorithm::SHA2_384 => {
+                let mut buffer = vec![0u8; config.chunk_size];
+                let mut hash = sha2::sha384::Hash::new();
                 loop {
                     let count = self.read(&mut buffer)?;
                     hash.update(&buffer[..count]);
@@ -446,6 +472,19 @@ impl Chksum for Stdin {
                 let digest = hash.pad().digest();
                 Ok(digest.into())
             },
+            HashAlgorithm::SHA2_384 => {
+                let mut buffer = vec![0u8; config.chunk_size];
+                let mut hash = sha2::sha384::Hash::new();
+                loop {
+                    let count = self.read(&mut buffer)?;
+                    hash.update(&buffer[..count]);
+                    if count == 0 {
+                        break;
+                    }
+                }
+                let digest = hash.pad().digest();
+                Ok(digest.into())
+            },
             HashAlgorithm::SHA2_512 => {
                 let mut buffer = vec![0u8; config.chunk_size];
                 let mut hash = sha2::sha512::Hash::new();
@@ -522,6 +561,19 @@ impl<'a> Chksum for StdinLock<'a> {
             HashAlgorithm::SHA2_256 => {
                 let mut buffer = vec![0u8; config.chunk_size];
                 let mut hash = sha2::sha256::Hash::new();
+                loop {
+                    let count = self.read(&mut buffer)?;
+                    hash.update(&buffer[..count]);
+                    if count == 0 {
+                        break;
+                    }
+                }
+                let digest = hash.pad().digest();
+                Ok(digest.into())
+            },
+            HashAlgorithm::SHA2_384 => {
+                let mut buffer = vec![0u8; config.chunk_size];
+                let mut hash = sha2::sha384::Hash::new();
                 loop {
                     let count = self.read(&mut buffer)?;
                     hash.update(&buffer[..count]);
@@ -669,6 +721,37 @@ impl Chksum for ReadDir {
             HashAlgorithm::SHA2_256 => {
                 let mut buffer = vec![0u8; config.chunk_size];
                 let mut hash = sha2::sha256::Hash::new();
+                while let Some(entry) = stack.pop_front() {
+                    let path = entry.path();
+                    let metadata = entry.metadata()?;
+                    if metadata.is_file() {
+                        let mut file = File::open(&path)?;
+                        loop {
+                            let count = file.read(&mut buffer)?;
+                            hash.update(&buffer[..count]);
+                            if count == 0 {
+                                break;
+                            }
+                        }
+                    } else if metadata.is_dir() {
+                        let mut entries = fs::read_dir(&path)?.collect::<io::Result<Vec<_>>>()?;
+                        entries.sort_by_key(|entry| Reverse(entry.path()));
+                        let entries = entries;
+                        // entries are pushed in reverse order
+                        for entry in entries {
+                            stack.push_front(entry);
+                        }
+                    } else {
+                        let error = Error::NetherFileNorDirectory { path };
+                        return Err(error);
+                    }
+                }
+                let digest = hash.pad().digest();
+                Ok(digest.into())
+            },
+            HashAlgorithm::SHA2_384 => {
+                let mut buffer = vec![0u8; config.chunk_size];
+                let mut hash = sha2::sha384::Hash::new();
                 while let Some(entry) = stack.pop_front() {
                     let path = entry.path();
                     let metadata = entry.metadata()?;

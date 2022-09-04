@@ -466,6 +466,130 @@ mod sha2 {
         }
     }
 
+    mod sha384 {
+        use super::*;
+
+        #[test]
+        fn empty_directory() -> Result {
+            let data = data_with_size(Size::Empty as usize);
+            let directory = {
+                let directory = tempdir()?;
+                let file = directory.path().join("file.txt");
+                let mut file = File::create(file)?;
+                file.write(&data)?;
+                file.flush()?;
+                directory
+            };
+            let digest = read_dir(&directory)?.chksum(HashAlgorithm::SHA2_384)?;
+            let digest = format!("{:X}", digest);
+            assert_eq!(
+                digest,
+                "38B060A751AC96384CD9327EB1B1E36A21FDB71114BE07434C0CC7BF63F6E1DA274EDEBFE76F65FBD51AD2F14898B95B"
+            );
+            Ok(())
+        }
+
+        #[test]
+        fn tiny_directory() -> Result {
+            let data = data_with_size(Size::Tiny as usize);
+            let directory = {
+                let directory = tempdir()?;
+                let file = directory.path().join("file.txt");
+                let mut file = File::create(file)?;
+                file.write(&data)?;
+                file.flush()?;
+                directory
+            };
+            let digest = read_dir(&directory)?.chksum(HashAlgorithm::SHA2_384)?;
+            let digest = format!("{:X}", digest);
+            assert_eq!(
+                digest,
+                "9000CD7CADA59D1D2EB82912F7F24E5E69CC5517F68283B005FA27C285B61E05EDF1AD1A8A9BDED6FD29EB87D75AD806"
+            );
+            Ok(())
+        }
+
+        #[test]
+        fn small_directory() -> Result {
+            let data = data_with_size(Size::Small as usize);
+            let directory = {
+                let directory = tempdir()?;
+                let file = directory.path().join("file.txt");
+                let mut file = File::create(file)?;
+                file.write(&data)?;
+                file.flush()?;
+                directory
+            };
+            let digest = read_dir(&directory)?.chksum(HashAlgorithm::SHA2_384)?;
+            let digest = format!("{:X}", digest);
+            assert_eq!(
+                digest,
+                "393ADBE4D176063A1256861BCEF37605117F9E43C0CB25D4A6D5F9A3A0D0529657DB7F7C19235A299711B1B81218FC61"
+            );
+            Ok(())
+        }
+
+        #[test]
+        fn medium_directory() -> Result {
+            let data = data_with_size(Size::Medium as usize);
+            let directory = {
+                let directory = tempdir()?;
+                let file = directory.path().join("file.txt");
+                let mut file = File::create(file)?;
+                file.write(&data)?;
+                file.flush()?;
+                directory
+            };
+            let digest = read_dir(&directory)?.chksum(HashAlgorithm::SHA2_384)?;
+            let digest = format!("{:X}", digest);
+            assert_eq!(
+                digest,
+                "E0A8A701842A4F836EE11EE2715973FE08CA1AD0B4C6660F07537149BC6F930B5B2B24F7EF87C93DA7D9054F1576D0E7"
+            );
+            Ok(())
+        }
+
+        #[test]
+        fn big_directory() -> Result {
+            let data = data_with_size(Size::Big as usize);
+            let directory = {
+                let directory = tempdir()?;
+                let file = directory.path().join("file.txt");
+                let mut file = File::create(file)?;
+                file.write(&data)?;
+                file.flush()?;
+                directory
+            };
+            let digest = read_dir(&directory)?.chksum(HashAlgorithm::SHA2_384)?;
+            let digest = format!("{:X}", digest);
+            assert_eq!(
+                digest,
+                "DAB49CABF7FAD7EE6784B67541AD7CD8E1541D0E58A0E4969BF32F8308B484575FCFAD4B6D2F05288AEFF39B0B6A0BD0"
+            );
+            Ok(())
+        }
+
+        #[test]
+        fn huge_directory() -> Result {
+            let data = data_with_size(Size::Huge as usize);
+            let directory = {
+                let directory = tempdir()?;
+                let file = directory.path().join("file.txt");
+                let mut file = File::create(file)?;
+                file.write(&data)?;
+                file.flush()?;
+                directory
+            };
+            let digest = read_dir(&directory)?.chksum(HashAlgorithm::SHA2_384)?;
+            let digest = format!("{:X}", digest);
+            assert_eq!(
+                digest,
+                "507E8F0357DBB00B736720330D8C258E58415ACCD838894D5FCB13761990F5F9F4C1A87EF6E0760990F64C945A21E337"
+            );
+            Ok(())
+        }
+    }
+
     mod sha512 {
         use super::*;
 

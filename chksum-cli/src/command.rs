@@ -2,6 +2,14 @@ use clap::{arg, command, Command};
 
 use super::parse;
 
+static AFTER_HELP: &str = "Implemented hash algorithms:
+ - MD5,
+ - SHA-1,
+ - SHA-2 224,
+ - SHA-2 256,
+ - SHA-2 384,
+ - SHA-2 512.";
+
 /// Create new [`Command`] with all arguments.
 pub(crate) fn create() -> Command<'static> {
     command!("chksum-cli")
@@ -15,5 +23,5 @@ pub(crate) fn create() -> Command<'static> {
                 .required(false)
                 .validator(|value| parse::human_number(value).map(|_| ())),
         ])
-        .after_help("Implemented hash algorithms:\n - MD5,\n - SHA-1,\n - SHA-2 224,\n - SHA-2 256,\n - SHA-2 512.")
+        .after_help(AFTER_HELP)
 }

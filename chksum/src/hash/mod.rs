@@ -15,6 +15,8 @@ pub enum HashAlgorithm {
     SHA2_224,
     /// SHA-2 256 hash function implemented in [`sha2::sha256`] module.
     SHA2_256,
+    /// SHA-2 384 hash function implemented in [`sha2::sha384`] module.
+    SHA2_384,
     /// SHA-2 512 hash function implemented in [`sha2::sha512`] module.
     SHA2_512,
 }
@@ -29,6 +31,8 @@ pub enum HashDigest {
     SHA2_224(sha2::sha224::Digest),
     /// Digest of SHA-2 256 hash function implemented in [`sha2::sha256`] module.
     SHA2_256(sha2::sha256::Digest),
+    /// Digest of SHA-2 384 hash function implemented in [`sha2::sha384`] module.
+    SHA2_384(sha2::sha384::Digest),
     /// Digest of SHA-2 512 hash function implemented in [`sha2::sha512`] module.
     SHA2_512(sha2::sha512::Digest),
 }
@@ -61,6 +65,13 @@ impl From<sha2::sha256::Digest> for HashDigest {
     }
 }
 
+impl From<sha2::sha384::Digest> for HashDigest {
+    #[cfg_attr(not(debug_assertions), inline)]
+    fn from(digest: sha2::sha384::Digest) -> Self {
+        Self::SHA2_384(digest)
+    }
+}
+
 impl From<sha2::sha512::Digest> for HashDigest {
     #[cfg_attr(not(debug_assertions), inline)]
     fn from(digest: sha2::sha512::Digest) -> Self {
@@ -76,6 +87,7 @@ impl LowerHex for HashDigest {
             Self::SHA1(digest) => LowerHex::fmt(digest, f),
             Self::SHA2_224(digest) => LowerHex::fmt(digest, f),
             Self::SHA2_256(digest) => LowerHex::fmt(digest, f),
+            Self::SHA2_384(digest) => LowerHex::fmt(digest, f),
             Self::SHA2_512(digest) => LowerHex::fmt(digest, f),
         }
     }
@@ -89,6 +101,7 @@ impl UpperHex for HashDigest {
             Self::SHA1(digest) => UpperHex::fmt(digest, f),
             Self::SHA2_224(digest) => UpperHex::fmt(digest, f),
             Self::SHA2_256(digest) => UpperHex::fmt(digest, f),
+            Self::SHA2_384(digest) => UpperHex::fmt(digest, f),
             Self::SHA2_512(digest) => UpperHex::fmt(digest, f),
         }
     }
@@ -127,6 +140,14 @@ mod tests {
         let digest = "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855";
         let digest = sha2::sha256::Digest::try_from(digest)?;
         assert_eq!(HashDigest::from(digest), HashDigest::SHA2_256(digest));
+        Ok(())
+    }
+
+    #[test]
+    fn hash_digest_from_sha2_384() -> digest::Result<()> {
+        let digest = "38B060A751AC96384CD9327EB1B1E36A21FDB71114BE07434C0CC7BF63F6E1DA274EDEBFE76F65FBD51AD2F14898B95B";
+        let digest = sha2::sha384::Digest::try_from(digest)?;
+        assert_eq!(HashDigest::from(digest), HashDigest::SHA2_384(digest));
         Ok(())
     }
 
@@ -181,6 +202,18 @@ mod tests {
     }
 
     #[test]
+    fn hash_digest_sha2_384_lower_hex() -> digest::Result<()> {
+        let digest = "38B060A751AC96384CD9327EB1B1E36A21FDB71114BE07434C0CC7BF63F6E1DA274EDEBFE76F65FBD51AD2F14898B95B";
+        let digest = sha2::sha384::Digest::try_from(digest)?;
+        let digest = HashDigest::SHA2_384(digest);
+        assert_eq!(
+            format!("{:x}", digest),
+            "38b060a751ac96384cd9327eb1b1e36a21fdb71114be07434c0cc7bf63f6e1da274edebfe76f65fbd51ad2f14898b95b"
+        );
+        Ok(())
+    }
+
+    #[test]
     fn hash_digest_sha2_512_lower_hex() -> digest::Result<()> {
         let digest = "CF83E1357EEFB8BDF1542850D66D8007D620E4050B5715DC83F4A921D36CE9CE47D0D13C5D85F2B0FF8318D2877EEC2F63B931BD47417A81A538327AF927DA3E";
         let digest = sha2::sha512::Digest::try_from(digest)?;
@@ -230,6 +263,18 @@ mod tests {
         assert_eq!(
             format!("{:X}", digest),
             "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn hash_digest_sha2_384_upper_hex() -> digest::Result<()> {
+        let digest = "38b060a751ac96384cd9327eb1b1e36a21fdb71114be07434c0cc7bf63f6e1da274edebfe76f65fbd51ad2f14898b95b";
+        let digest = sha2::sha384::Digest::try_from(digest)?;
+        let digest = HashDigest::SHA2_384(digest);
+        assert_eq!(
+            format!("{:X}", digest),
+            "38B060A751AC96384CD9327EB1B1E36A21FDB71114BE07434C0CC7BF63F6E1DA274EDEBFE76F65FBD51AD2F14898B95B"
         );
         Ok(())
     }

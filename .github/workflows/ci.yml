@@ -191,7 +191,7 @@ jobs:
         with:
           crate: cargo-tarpaulin
       - name: Run cargo tarpaulin
-        run: cargo tarpaulin --all-features --all-targets --fail-under 50 --follow-exec --ignore-tests --out xml --timeout 120
+        run: cargo tarpaulin --all-features --all-targets --fail-under 80 --follow-exec --ignore-tests --out xml --timeout 120
       - name: Upload to codecov.io
         if: ${{ always() }}
         uses: codecov/codecov-action@v3
@@ -223,7 +223,7 @@ jobs:
         with:
           crate: cargo-tarpaulin
       - name: Run cargo tarpaulin
-        run: cargo tarpaulin --all-features --all-targets --exclude-files '../*' --fail-under 50 --follow-exec --ignore-tests --out xml --root ${{ matrix.package }} --timeout 120
+        run: cargo tarpaulin --all-features --all-targets --exclude-files '../*' --fail-under 80 --follow-exec --ignore-tests --out xml --root ${{ matrix.package }} --timeout 120
       - name: Upload to codecov.io
         if: ${{ always() }}
         uses: codecov/codecov-action@v3

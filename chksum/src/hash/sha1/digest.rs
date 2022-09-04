@@ -217,7 +217,7 @@ mod tests {
             ]))
         );
         assert!(matches!(
-            Digest::try_from("D4"),
+            Digest::try_from("DA"),
             Err(digest::Error::InvalidLength { value: _, proper: _ })
         ));
         assert!(matches!(

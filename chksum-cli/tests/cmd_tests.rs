@@ -221,6 +221,90 @@ fn test_hash_sha1() -> Result {
 }
 
 #[test]
+fn test_hash_sha2_224() -> Result {
+    // todo add more precise checks
+
+    let directory = TempDir::new()?;
+    let child = {
+        let child = directory.child("existing-file");
+        child.touch()?;
+        child
+    };
+
+    Command::cargo_bin("chksum-cli")?
+        .args(["-H", "SHA224"])
+        .arg(child.as_ref())
+        .assert()
+        .success();
+    Command::cargo_bin("chksum-cli")?
+        .args(["--hash", "SHA224"])
+        .arg(child.as_ref())
+        .assert()
+        .success();
+    Command::cargo_bin("chksum-cli")?
+        .args(["--hash", "SHA2 224"])
+        .arg(child.as_ref())
+        .assert()
+        .success();
+    Command::cargo_bin("chksum-cli")?
+        .args(["--hash", "SHA-2 224"])
+        .arg(child.as_ref())
+        .assert()
+        .success();
+    Command::cargo_bin("chksum-cli")?
+        .args(["--hash", "sha224"])
+        .arg(child.as_ref())
+        .assert()
+        .failure();
+
+    directory.close()?;
+
+    Ok(())
+}
+
+#[test]
+fn test_hash_sha2_256() -> Result {
+    // todo add more precise checks
+
+    let directory = TempDir::new()?;
+    let child = {
+        let child = directory.child("existing-file");
+        child.touch()?;
+        child
+    };
+
+    Command::cargo_bin("chksum-cli")?
+        .args(["-H", "SHA256"])
+        .arg(child.as_ref())
+        .assert()
+        .success();
+    Command::cargo_bin("chksum-cli")?
+        .args(["--hash", "SHA256"])
+        .arg(child.as_ref())
+        .assert()
+        .success();
+    Command::cargo_bin("chksum-cli")?
+        .args(["--hash", "SHA2 256"])
+        .arg(child.as_ref())
+        .assert()
+        .success();
+    Command::cargo_bin("chksum-cli")?
+        .args(["--hash", "SHA-2 256"])
+        .arg(child.as_ref())
+        .assert()
+        .success();
+    Command::cargo_bin("chksum-cli")?
+        .args(["--hash", "sha256"])
+        .arg(child.as_ref())
+        .assert()
+        .failure();
+
+    directory.close()?;
+
+    Ok(())
+}
+
+#[test]
 fn test_hash_sha2_512() -> Result {
     // todo add more precise checks
 

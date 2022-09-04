@@ -6,6 +6,7 @@ use tempfile::tempfile;
 mod common;
 use common::{data_with_size, Result, Size};
 
+#[cfg(feature = "md5")]
 mod md5 {
     use super::*;
 
@@ -100,6 +101,7 @@ mod md5 {
     }
 }
 
+#[cfg(feature = "sha1")]
 mod sha1 {
     use super::*;
 
@@ -194,9 +196,11 @@ mod sha1 {
     }
 }
 
+#[cfg(any(feature = "sha2_224", feature = "sha2_256", feature = "sha2_384", feature = "sha2_512"))]
 mod sha2 {
     use super::*;
 
+    #[cfg(feature = "sha2_224")]
     mod sha224 {
         use super::*;
 
@@ -291,6 +295,7 @@ mod sha2 {
         }
     }
 
+    #[cfg(feature = "sha2_256")]
     mod sha256 {
         use super::*;
 
@@ -403,6 +408,7 @@ mod sha2 {
         }
     }
 
+    #[cfg(feature = "sha2_384")]
     mod sha384 {
         use super::*;
 
@@ -515,6 +521,7 @@ mod sha2 {
         }
     }
 
+    #[cfg(feature = "sha2_512")]
     mod sha512 {
         use super::*;
 

@@ -59,7 +59,13 @@ use std::result;
 use std::str::Utf8Error;
 use std::string::FromUtf8Error;
 
-use self::hash::{md5, sha1, sha2, HashAlgorithm, HashDigest};
+use self::hash::{HashAlgorithm, HashDigest};
+#[cfg(feature = "md5")]
+use self::hash::md5;
+#[cfg(feature = "sha1")]
+use self::hash::sha1;
+#[cfg(any(feature = "sha2_224", feature = "sha2_256", feature = "sha2_384", feature = "sha2_512"))]
+use self::hash::sha2;
 
 /// Contains informations about hashing process.
 ///
@@ -218,6 +224,7 @@ impl Chksum for &[u8] {
         }
 
         match hash_algorithm {
+            #[cfg(feature = "md5")]
             HashAlgorithm::MD5 => {
                 let mut buffer = vec![0u8; config.chunk_size];
                 let mut hash = md5::Hash::new();
@@ -231,6 +238,7 @@ impl Chksum for &[u8] {
                 let digest = hash.pad().digest();
                 Ok(digest.into())
             },
+            #[cfg(feature = "sha1")]
             HashAlgorithm::SHA1 => {
                 let mut buffer = vec![0u8; config.chunk_size];
                 let mut hash = sha1::Hash::new();
@@ -244,6 +252,7 @@ impl Chksum for &[u8] {
                 let digest = hash.pad().digest();
                 Ok(digest.into())
             },
+            #[cfg(feature = "sha2_224")]
             HashAlgorithm::SHA2_224 => {
                 let mut buffer = vec![0u8; config.chunk_size];
                 let mut hash = sha2::sha224::Hash::new();
@@ -257,6 +266,7 @@ impl Chksum for &[u8] {
                 let digest = hash.pad().digest();
                 Ok(digest.into())
             },
+            #[cfg(feature = "sha2_256")]
             HashAlgorithm::SHA2_256 => {
                 let mut buffer = vec![0u8; config.chunk_size];
                 let mut hash = sha2::sha256::Hash::new();
@@ -270,6 +280,7 @@ impl Chksum for &[u8] {
                 let digest = hash.pad().digest();
                 Ok(digest.into())
             },
+            #[cfg(feature = "sha2_384")]
             HashAlgorithm::SHA2_384 => {
                 let mut buffer = vec![0u8; config.chunk_size];
                 let mut hash = sha2::sha384::Hash::new();
@@ -283,6 +294,7 @@ impl Chksum for &[u8] {
                 let digest = hash.pad().digest();
                 Ok(digest.into())
             },
+            #[cfg(feature = "sha2_512")]
             HashAlgorithm::SHA2_512 => {
                 let mut buffer = vec![0u8; config.chunk_size];
                 let mut hash = sha2::sha512::Hash::new();
@@ -312,6 +324,7 @@ impl Chksum for File {
         }
 
         match hash_algorithm {
+            #[cfg(feature = "md5")]
             HashAlgorithm::MD5 => {
                 let mut buffer = vec![0u8; config.chunk_size];
                 let mut hash = md5::Hash::new();
@@ -325,6 +338,7 @@ impl Chksum for File {
                 let digest = hash.pad().digest();
                 Ok(digest.into())
             },
+            #[cfg(feature = "sha1")]
             HashAlgorithm::SHA1 => {
                 let mut buffer = vec![0u8; config.chunk_size];
                 let mut hash = sha1::Hash::new();
@@ -338,6 +352,7 @@ impl Chksum for File {
                 let digest = hash.pad().digest();
                 Ok(digest.into())
             },
+            #[cfg(feature = "sha2_224")]
             HashAlgorithm::SHA2_224 => {
                 let mut buffer = vec![0u8; config.chunk_size];
                 let mut hash = sha2::sha224::Hash::new();
@@ -351,6 +366,7 @@ impl Chksum for File {
                 let digest = hash.pad().digest();
                 Ok(digest.into())
             },
+            #[cfg(feature = "sha2_256")]
             HashAlgorithm::SHA2_256 => {
                 let mut buffer = vec![0u8; config.chunk_size];
                 let mut hash = sha2::sha256::Hash::new();
@@ -364,6 +380,7 @@ impl Chksum for File {
                 let digest = hash.pad().digest();
                 Ok(digest.into())
             },
+            #[cfg(feature = "sha2_384")]
             HashAlgorithm::SHA2_384 => {
                 let mut buffer = vec![0u8; config.chunk_size];
                 let mut hash = sha2::sha384::Hash::new();
@@ -377,6 +394,7 @@ impl Chksum for File {
                 let digest = hash.pad().digest();
                 Ok(digest.into())
             },
+            #[cfg(feature = "sha2_512")]
             HashAlgorithm::SHA2_512 => {
                 let mut buffer = vec![0u8; config.chunk_size];
                 let mut hash = sha2::sha512::Hash::new();
@@ -420,6 +438,7 @@ impl Chksum for Stdin {
         }
 
         match hash_algorithm {
+            #[cfg(feature = "md5")]
             HashAlgorithm::MD5 => {
                 let mut buffer = vec![0u8; config.chunk_size];
                 let mut hash = md5::Hash::new();
@@ -433,6 +452,7 @@ impl Chksum for Stdin {
                 let digest = hash.pad().digest();
                 Ok(digest.into())
             },
+            #[cfg(feature = "sha1")]
             HashAlgorithm::SHA1 => {
                 let mut buffer = vec![0u8; config.chunk_size];
                 let mut hash = sha1::Hash::new();
@@ -446,6 +466,7 @@ impl Chksum for Stdin {
                 let digest = hash.pad().digest();
                 Ok(digest.into())
             },
+            #[cfg(feature = "sha2_224")]
             HashAlgorithm::SHA2_224 => {
                 let mut buffer = vec![0u8; config.chunk_size];
                 let mut hash = sha2::sha224::Hash::new();
@@ -459,6 +480,7 @@ impl Chksum for Stdin {
                 let digest = hash.pad().digest();
                 Ok(digest.into())
             },
+            #[cfg(feature = "sha2_256")]
             HashAlgorithm::SHA2_256 => {
                 let mut buffer = vec![0u8; config.chunk_size];
                 let mut hash = sha2::sha256::Hash::new();
@@ -472,6 +494,7 @@ impl Chksum for Stdin {
                 let digest = hash.pad().digest();
                 Ok(digest.into())
             },
+            #[cfg(feature = "sha2_384")]
             HashAlgorithm::SHA2_384 => {
                 let mut buffer = vec![0u8; config.chunk_size];
                 let mut hash = sha2::sha384::Hash::new();
@@ -485,6 +508,7 @@ impl Chksum for Stdin {
                 let digest = hash.pad().digest();
                 Ok(digest.into())
             },
+            #[cfg(feature = "sha2_512")]
             HashAlgorithm::SHA2_512 => {
                 let mut buffer = vec![0u8; config.chunk_size];
                 let mut hash = sha2::sha512::Hash::new();
@@ -519,6 +543,7 @@ impl<'a> Chksum for StdinLock<'a> {
         }
 
         match hash_algorithm {
+            #[cfg(feature = "md5")]
             HashAlgorithm::MD5 => {
                 let mut buffer = vec![0u8; config.chunk_size];
                 let mut hash = md5::Hash::new();
@@ -532,6 +557,7 @@ impl<'a> Chksum for StdinLock<'a> {
                 let digest = hash.pad().digest();
                 Ok(digest.into())
             },
+            #[cfg(feature = "sha1")]
             HashAlgorithm::SHA1 => {
                 let mut buffer = vec![0u8; config.chunk_size];
                 let mut hash = sha1::Hash::new();
@@ -545,6 +571,7 @@ impl<'a> Chksum for StdinLock<'a> {
                 let digest = hash.pad().digest();
                 Ok(digest.into())
             },
+            #[cfg(feature = "sha2_224")]
             HashAlgorithm::SHA2_224 => {
                 let mut buffer = vec![0u8; config.chunk_size];
                 let mut hash = sha2::sha224::Hash::new();
@@ -558,6 +585,7 @@ impl<'a> Chksum for StdinLock<'a> {
                 let digest = hash.pad().digest();
                 Ok(digest.into())
             },
+            #[cfg(feature = "sha2_256")]
             HashAlgorithm::SHA2_256 => {
                 let mut buffer = vec![0u8; config.chunk_size];
                 let mut hash = sha2::sha256::Hash::new();
@@ -571,6 +599,7 @@ impl<'a> Chksum for StdinLock<'a> {
                 let digest = hash.pad().digest();
                 Ok(digest.into())
             },
+            #[cfg(feature = "sha2_384")]
             HashAlgorithm::SHA2_384 => {
                 let mut buffer = vec![0u8; config.chunk_size];
                 let mut hash = sha2::sha384::Hash::new();
@@ -584,6 +613,7 @@ impl<'a> Chksum for StdinLock<'a> {
                 let digest = hash.pad().digest();
                 Ok(digest.into())
             },
+            #[cfg(feature = "sha2_512")]
             HashAlgorithm::SHA2_512 => {
                 let mut buffer = vec![0u8; config.chunk_size];
                 let mut hash = sha2::sha512::Hash::new();
@@ -625,6 +655,7 @@ impl Chksum for ReadDir {
         entries.sort_by_key(DirEntry::path);
         let mut stack: VecDeque<_> = entries.into_iter().collect();
         match hash_algorithm {
+            #[cfg(feature = "md5")]
             HashAlgorithm::MD5 => {
                 let mut buffer = vec![0u8; config.chunk_size];
                 let mut hash = md5::Hash::new();
@@ -656,6 +687,7 @@ impl Chksum for ReadDir {
                 let digest = hash.pad().digest();
                 Ok(digest.into())
             },
+            #[cfg(feature = "sha1")]
             HashAlgorithm::SHA1 => {
                 let mut buffer = vec![0u8; config.chunk_size];
                 let mut hash = sha1::Hash::new();
@@ -687,6 +719,7 @@ impl Chksum for ReadDir {
                 let digest = hash.pad().digest();
                 Ok(digest.into())
             },
+            #[cfg(feature = "sha2_224")]
             HashAlgorithm::SHA2_224 => {
                 let mut buffer = vec![0u8; config.chunk_size];
                 let mut hash = sha2::sha224::Hash::new();
@@ -718,6 +751,7 @@ impl Chksum for ReadDir {
                 let digest = hash.pad().digest();
                 Ok(digest.into())
             },
+            #[cfg(feature = "sha2_256")]
             HashAlgorithm::SHA2_256 => {
                 let mut buffer = vec![0u8; config.chunk_size];
                 let mut hash = sha2::sha256::Hash::new();
@@ -749,6 +783,7 @@ impl Chksum for ReadDir {
                 let digest = hash.pad().digest();
                 Ok(digest.into())
             },
+            #[cfg(feature = "sha2_384")]
             HashAlgorithm::SHA2_384 => {
                 let mut buffer = vec![0u8; config.chunk_size];
                 let mut hash = sha2::sha384::Hash::new();
@@ -780,6 +815,7 @@ impl Chksum for ReadDir {
                 let digest = hash.pad().digest();
                 Ok(digest.into())
             },
+            #[cfg(feature = "sha2_512")]
             HashAlgorithm::SHA2_512 => {
                 let mut buffer = vec![0u8; config.chunk_size];
                 let mut hash = sha2::sha512::Hash::new();

@@ -213,6 +213,7 @@ impl State {
         [self.a, self.b, self.c, self.d, self.e, self.f, self.g, self.h]
     }
 
+    #[allow(clippy::too_many_arguments)]
     #[cfg_attr(not(debug_assertions), inline)]
     #[must_use]
     const fn from_raw(a: u64, b: u64, c: u64, d: u64, e: u64, f: u64, g: u64, h: u64) -> Self {
@@ -560,6 +561,7 @@ impl State {
             x.rotate_right(14) ^ x.rotate_right(18) ^ x.rotate_right(41)
         }
 
+        #[allow(clippy::too_many_arguments)]
         #[cfg_attr(not(debug_assertions), inline)]
         #[rustfmt::skip]
         const fn round(a: u64, b: u64, c: u64, d: u64, e: u64, f: u64, g: u64, h: u64, w: u64, k: u64) -> (u64, u64, u64, u64, u64, u64, u64, u64) {
